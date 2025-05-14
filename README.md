@@ -154,7 +154,7 @@ RPC_LIST=(
 ```
 
 ### SSH Key Setup
-Place private SSH keys (\`private_key.ssh\`) for both servers in \`~/keys\`.
+Place private SSH keys (\`any_name.ssh\`) for both servers in \`~/keys\`.
 
 ### Launch Order
 Run \`guard.sh\` on the secondary server first to copy its IP to the primary server. Subsequent launches can be in any order.
