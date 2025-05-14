@@ -69,7 +69,7 @@ A script for seamless voting failover between primary and secondary Solana nodes
 
 ### Download \`guard.sh\`
 Fetch the latest version and set up an alias:
-\```bash
+```bash
 # Download guard.sh
 LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 TAG=\$(curl -sSL "\$LATEST_TAG_URL" | jq -r '.tag_name')
@@ -86,28 +86,28 @@ if ! grep -q "guard" \$HOME/.bashrc; then
     echo "Alias 'guard' added to .bashrc"
 fi
 source \$HOME/.bashrc
-\```
+```
 
 ### Configure Solana Service
 The Solana service must start with a non-voting key (\`empty-validator.json\`).
 
 Generate a non-voting key:
-\```bash
+```bash
 if [ ! -f ~/solana/empty-validator.json ]; then 
     solana-keygen new -s --no-bip39-passphrase -o ~/solana/empty-validator.json
 fi
-\```
+```
 
 Update \`solana.service\` configuration:
-\```bash
+```bash
 --identity /root/solana/empty-validator.json \
 --authorized-voter /root/solana/validator-keypair.json \
 --vote-account /root/solana/vote.json \
-\```
+```
 
 ### Set Up Keys Directory
 Create a RAM disk for the keys directory:
-\```bash
+```bash
 if [ ! -d "\$HOME/keys" ]; then
     mkdir -p /mnt/keys
     chmod 600 /mnt/keys 
@@ -118,15 +118,15 @@ tmpfs /mnt/keys tmpfs nodev,nosuid,noexec,nodiratime,size=1M 0 0" | sudo tee -a 
 else
     echo "~/keys exist"
 fi
-\```
+```
 
 Create symbolic links to the keys directory:
-\```bash
+```bash
 # Create links
 ln -sf /mnt/keys ~/keys
 ln -sf /mnt/keys/vote-keypair.json ~/solana/vote.json
 ln -sf /mnt/keys/validator-keypair.json ~/solana/validator-keypair.json
-\```
+```
 
 ### Configure \`guard.cfg\`
 Settings are stored in \`~/guard.cfg\`. For Telegram notifications, a \`BOT_TOKEN\` is required.
@@ -134,7 +134,7 @@ Settings are stored in \`~/guard.cfg\`. For Telegram notifications, a \`BOT_TOKE
 To improve reliability, the script queries an alternative RPC ([Helius RPC](https://dashboard.helius.dev)) alongside Solana's RPC. If responses match, the result is accepted. If they differ, 10 additional queries are made to each RPC, accepting the answer if 75% of responses agree. A free Helius account lasts about three days, so the script cycles through the \`RPC_LIST\` when one server stops responding.
 
 Example \`guard.cfg\':
-\```bash
+```bash
 PORT='22' # Remote server SSH port
 KEYS=\$HOME/keys
 SOLANA_SERVICE=\$HOME/solana/solana.service
@@ -150,7 +150,7 @@ RPC_LIST=(
     "https://mainnet.helius-rpc.com/..."
     "https://mainnet.helius-rpc.com/..."
 )
-\```
+```
 
 ### SSH Key Setup
 Place private SSH keys (\`private_key.ssh\`) for both servers in \`~/keys\`.
@@ -164,11 +164,11 @@ A utility for convenient server status monitoring.
 ![Check Status](https://github.com/user-attachments/assets/efe5076e-ead2-4ec9-841a-e9ed61a4d309)
 
 Install \`check.sh\':
-\```bash
+```bash
 curl "https://raw.githubusercontent.com/Hohlas/solana/main/setup/check.sh" > \$HOME/check.sh
 chmod +x \$HOME/check.sh
 echo "alias check='source \$HOME/check.sh'" >> \$HOME/.bashrc
-\```
+```
 
 ## Notes
 - Ensure \`bc\` is installed (\`apt install bc\`) for numerical calculations.
