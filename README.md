@@ -70,22 +70,23 @@ A script for seamless voting failover between primary and secondary Solana nodes
 ### Download \`guard.sh\`
 Fetch the latest version and set up an alias:
 ```bash
-# Download guard.sh
+# download guard.sh
 LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
-TAG=\$(curl -sSL "\$LATEST_TAG_URL" | jq -r '.tag_name')
-curl "https://raw.githubusercontent.com/Hohlas/solana-guard/\$TAG/guard.sh" > \$HOME/guard.sh
-if [ \$? -eq 0 ]; then
-    echo "Downloaded guard.sh (\$TAG) successfully"
-    chmod +x \$HOME/guard.sh
+TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
+echo "download latest release $TAG"
+curl "https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/guard.sh" > $HOME/guard.sh
+if [ $? -eq 0 ]; then
+	echo "Downloaded guard.sh $TAG successfully"
+	chmod +x $HOME/guard.sh
 else
-    echo "Failed to download guard.sh"
+	echo "Failed to download guard.sh";
 fi
-# Set alias
-if ! grep -q "guard" \$HOME/.bashrc; then
-    echo "alias guard='source \$HOME/guard.sh'" >> \$HOME/.bashrc
-    echo "Alias 'guard' added to .bashrc"
+# set alias
+if ! grep -q "guard" $HOME/.bashrc; then
+  	echo "alias guard='source $HOME/guard.sh'" >> $HOME/.bashrc
+	echo "Alias 'guard' added to .bashrc"
 fi
-source \$HOME/.bashrc
+source $HOME/.bashrc
 ```
 
 ### Configure Solana Service
@@ -108,13 +109,13 @@ Update \`solana.service\` configuration:
 ### Set Up Keys Directory
 Create a RAM disk for the keys directory:
 ```bash
-if [ ! -d "\$HOME/keys" ]; then
+if [ ! -d "$HOME/keys" ]; then
     mkdir -p /mnt/keys
     chmod 600 /mnt/keys 
-    echo "# KEYS to RAMDISK 
-tmpfs /mnt/keys tmpfs nodev,nosuid,noexec,nodiratime,size=1M 0 0" | sudo tee -a /etc/fstab
-    mount /mnt/keys
-    echo "Created and mounted ~/keys in RAMDISK"
+	echo "# KEYS to RAMDISK 
+	tmpfs /mnt/keys tmpfs nodev,nosuid,noexec,nodiratime,size=1M 0 0" | sudo tee -a /etc/fstab
+	mount /mnt/keys
+	echo "create and mount ~/keys in RAMDISK"
 else
     echo "~/keys exist"
 fi
@@ -122,7 +123,7 @@ fi
 
 Create symbolic links to the keys directory:
 ```bash
-# Create links
+# create links
 ln -sf /mnt/keys ~/keys
 ln -sf /mnt/keys/vote-keypair.json ~/solana/vote.json
 ln -sf /mnt/keys/validator-keypair.json ~/solana/validator-keypair.json
@@ -135,20 +136,20 @@ To improve reliability, the script queries an alternative RPC ([Helius RPC](http
 
 Example \`guard.cfg\':
 ```bash
-PORT='22' # Remote server SSH port
-KEYS=\$HOME/keys
-SOLANA_SERVICE=\$HOME/solana/solana.service
-BEHIND_WARNING=false # 'false': Send Telegram INFO message for Behind; 'true': Send ALERT message
-WARNING_FREQUENCY=12 # Max frequency of warning messages (WARNING_FREQUENCY x 5 seconds)
-BEHIND_OK_VAL=3 # Acceptable Behind threshold
-RELAYER_SERVICE=false # Enable restarting jito-relayer service
+PORT='22' # remote server ssh port
+KEYS=$HOME/keys
+SOLANA_SERVICE=$HOME/solana/solana.service
+BEHIND_WARNING=false # 'false'- send telegramm INFO missage, when behind. 'true'-send ALERT message
+WARNING_FREQUENCY=12 # max frequency of warning messages (WARNING_FREQUENCY x 5) seconds
+BEHIND_OK_VAL=3 # behind, that seemed ordinary
+RELAYER_SERVICE=false # use restarting jito-relayer service
 CHAT_ALARM=-100..684
 CHAT_INFO=-100..888
 BOT_TOKEN=507625...VICllWU
 RPC_LIST=(
-    "https://mainnet.helius-rpc.com/..."
-    "https://mainnet.helius-rpc.com/..."
-    "https://mainnet.helius-rpc.com/..."
+"https://mainnet.helius-rpc.com/..."
+"https://mainnet.helius-rpc.com/..."
+"https://mainnet.helius-rpc.com/..."
 )
 ```
 
@@ -165,9 +166,10 @@ A utility for convenient server status monitoring.
 
 Install \`check.sh\':
 ```bash
-curl "https://raw.githubusercontent.com/Hohlas/solana/main/setup/check.sh" > \$HOME/check.sh
-chmod +x \$HOME/check.sh
-echo "alias check='source \$HOME/check.sh'" >> \$HOME/.bashrc
+# установка
+curl "https://raw.githubusercontent.com/Hohlas/solana/main/setup/check.sh" > $HOME/check.sh
+chmod +x $HOME/check.sh
+echo "alias check='source $HOME/check.sh'" >> $HOME/.bashrc
 ```
 
 ## Notes
