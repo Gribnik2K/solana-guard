@@ -66,11 +66,12 @@ solana-validator --ledger '$LEDGER' contact-info
 Загрузка последней версии guard.sh и добавление алиаса
 ```bash
 # download guard.sh
-LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana/releases/latest
+LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
-curl "https://raw.githubusercontent.com/Hohlas/solana/$TAG/guard/guard.sh" > $HOME/guard.sh
+echo "download latest release $TAG"
+curl "https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/guard.sh" > $HOME/guard.sh
 if [ $? -eq 0 ]; then
-	echo "Downloaded guard.sh ($TAG) successfully"
+	echo "Downloaded guard.sh $TAG successfully"
 	chmod +x $HOME/guard.sh
 else
 	echo "Failed to download guard.sh";
