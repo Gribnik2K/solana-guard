@@ -82,9 +82,11 @@ else
 	echo "Failed to download guard.sh";
 fi
 # set alias
-if ! grep -q "guard" $HOME/.bashrc; then
+if ! grep -q "alias guard='source $HOME/guard.sh'" $HOME/.bashrc; then
   	echo "alias guard='source $HOME/guard.sh'" >> $HOME/.bashrc
 	echo "Alias 'guard' added to .bashrc"
+else
+	echo "Alias 'guard' already added to .bashrc"
 fi
 source $HOME/.bashrc
 ```
