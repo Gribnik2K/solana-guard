@@ -101,15 +101,15 @@ fi
 ```
 Создание папки ~/keys на рамдиске
 ```bash
-if [ ! -d "$HOME/keys" ]; then
+if [ ! -d "/mnt/keys" ]; then
     mkdir -p /mnt/keys
     chmod 600 /mnt/keys 
 	echo "# KEYS to RAMDISK 
 	tmpfs /mnt/keys tmpfs nodev,nosuid,noexec,nodiratime,size=1M 0 0" | sudo tee -a /etc/fstab
 	mount /mnt/keys
-	echo "create and mount ~/keys in RAMDISK"
+	echo "create and mount /mnt/keys in RAMDISK"
 else
-    echo "~/keys exist"
+    echo "/mnt/keys exist"
 fi
 ```
 Создание символических ссылок на папку с ключами /mnt/keys
