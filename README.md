@@ -74,20 +74,46 @@ Fetch the latest version and set up an alias:
 LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
 echo "download latest release $TAG"
-curl "https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/guard.sh" > $HOME/guard.sh
-if [ $? -eq 0 ]; then
-	echo "Downloaded guard.sh $TAG successfully"
-	chmod +x $HOME/guard.sh
-else
-	echo "Failed to download guard.sh";
+if [ -d ~/solana-guard ]; then 
+  cd ~/solana-guard; 
+  git fetch origin; # get last updates from git
+  git reset --hard origin/main # 
+else 
+  git clone https://github.com/Hohlas/solana-guard.git ~/solana-guard
 fi
+chmod +x ~/solana-guard/guard.sh
+chmod +x ~/solana-guard/check.sh
+
+BASHRC_FILE="$HOME/.bashrc"
 # set alias
-if ! grep -q "alias guard='source $HOME/guard.sh'" $HOME/.bashrc; then
-  	echo "alias guard='source $HOME/guard.sh'" >> $HOME/.bashrc
-	echo "Alias 'guard' added to .bashrc"
+if [ -f "$HOME/.bashrc" ]; then
+    OLD_ALIAS="alias guard='source ~/sol_git/guard/guard.sh'"
+	NEW_ALIAS="alias guard='source ~/solana-guard/guard.sh'"
+	if grep -q "^$OLD_ALIAS" "$BASHRC_FILE"; then
+        sed -i.bak "s|^$OLD_ALIAS.*|$NEW_ALIAS|" "$BASHRC_FILE"
+        echo "change alias [$OLD_ALIAS]  - >  [$NEW_ALIAS]"
+    elif grep -q "^$NEW_ALIAS" "$BASHRC_FILE"; then
+        echo "alias already in use"
+    else
+        echo "$NEW_ALIAS" >> "$BASHRC_FILE"
+        echo "add new alias: [$NEW_ALIAS]"
+    fi
+
+	OLD_ALIAS="alias check='source ~/sol_git/setup/check.sh'"
+	NEW_ALIAS="alias check='source ~/solana-guard/check.sh'"
+	if grep -q "^$OLD_ALIAS" "$BASHRC_FILE"; then
+        sed -i.bak "s|^$OLD_ALIAS.*|$NEW_ALIAS|" "$BASHRC_FILE"
+        echo "change alias [$OLD_ALIAS]  - >  [$NEW_ALIAS]"
+    elif grep -q "^$NEW_ALIAS" "$BASHRC_FILE"; then
+        echo "alias already in use"
+    else
+        echo "$NEW_ALIAS" >> "$BASHRC_FILE"
+        echo "add new alias: [$NEW_ALIAS]"
+    fi
 else
-	echo "Alias 'guard' already added to .bashrc"
+    echo "file $HOME/.bashrc not found."
 fi
+
 source $HOME/.bashrc
 ```
 
