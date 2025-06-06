@@ -70,6 +70,12 @@ A script for seamless voting failover between primary and secondary Solana nodes
 ### Download \`guard.sh\`
 Fetch the latest version and set up an alias:
 ```bash
+# install curl jq bc
+if ! command -v curl >/dev/null || ! command -v jq >/dev/null || ! command -v bc >/dev/null; then
+    echo "install curl jq bc..."
+    sudo apt update && sudo apt install -y curl jq bc
+fi
+
 # download guard.sh
 LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
