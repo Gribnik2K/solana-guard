@@ -441,7 +441,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
 			else SEND_INFO "$SERV_TYPE ${NODE}.${NAME}: Behind=$BEHIND"; fi
 		fi
 	fi
-	REMOTE_BEHIND=$(cat $HOME/remote_behind)
+	REMOTE_BEHIND=$(cat $HOME/solana-guard/remote_behind)
 	if [[ $REMOTE_BEHIND -le $BEHIND_OK_VAL ]]; then #  && $REMOTE_BEHIND -gt -1000 проверка на "число" и -1000<REMOTE_BEHIND<1
 		remote_behind_counter=0
   		REMOTE_BEHIND_PRN="$GREEN$REMOTE_BEHIND"	
@@ -454,8 +454,8 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
 
  	# check guard running on remote server
  	current_time=$(date +%s)
-	SSH "echo '$BEHIND' > $HOME/remote_behind"
- 	last_modified=$(date -r "$HOME/remote_behind" +%s)
+	SSH "echo '$BEHIND' > $HOME/solana-guard/remote_behind"
+ 	last_modified=$(date -r "$HOME/solana-guard/remote_behind" +%s)
 	time_diff=$((current_time - last_modified)) #; echo "last: $time_diff seconds"
 	if [ $time_diff -ge 300 ] && [ $((current_time - connection_alarm_time)) -ge 120  ]; then
 		SEND_ALARM "guard inactive on ${NODE}.${NAME}, $REMOTE_IP"
@@ -707,8 +707,8 @@ if [[ $primary_mode == "p" ]]; then
 	echo -e "start guard in $YELLOW Permanent Primary mode$CLEAR"
 fi	
 if [[ "$SERV_TYPE" == "PRIMARY" ]]; then # PRIMARY can't determine REMOTE_IP of SECONDARY
-	if [ -f $HOME/remote_ip ]; then # SECONDARY should have written its IP to PRIMARY
-		REMOTE_IP=$(cat $HOME/remote_ip) # echo "get REMOTE_IP of SECONDARY_SERVER from $HOME/remote_ip: $REMOTE_IP"
+	if [ -f $HOME/solana-guard/remote_ip ]; then # SECONDARY should have written its IP to PRIMARY
+		REMOTE_IP=$(cat $HOME/solana-guard/remote_ip) # echo "get REMOTE_IP of SECONDARY_SERVER from $HOME/solana-guard/remote_ip: $REMOTE_IP"
 	else 
 		REMOTE_IP=''	
 	fi
@@ -789,8 +789,8 @@ echo " remote empty_adr = $remote_empty"
 echo " remote server IP = $REMOTE_IP"
 echo " remote server    = $REMOTE_SERVER_STATUS"
 
-echo '0' > $HOME/remote_behind # update local file for stop alarm next 600 seconds
-SSH "echo '$CUR_IP' > $HOME/remote_ip" # send 'current IP' to remote server
+echo '0' > $HOME/solana-guard/remote_behind # update local file for stop alarm next 600 seconds
+SSH "echo '$CUR_IP' > $HOME/solana-guard/remote_ip" # send 'current IP' to remote server
 
 while true  ###  main cycle   #################################################
 do
