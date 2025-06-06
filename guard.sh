@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.7.8
+GUARD_VER=v1.8.1
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -31,9 +31,9 @@ fi
 VOTING_ADDR=$(solana address -k $VOTING_KEY)
 EMPTY_ADDR=$(solana address -k $EMPTY_KEY)
 rpcURL1=$(solana config get | grep "RPC URL" | awk '{print $3}')
-version=$(solana-validator --version 2>/dev/null)
+version=$(agave-validator --version 2>/dev/null)
 if [ $? -ne 0 ]; then
-    echo "Error! Can't run 'solana-validator'"
+    echo "Error! Can't run 'agave-validator'"
 	return
 else
 	version=$(echo "$version" | awk -F '[ ()]' '{print $1, $2, $NF}' | sed 's/client://')
@@ -64,7 +64,7 @@ fi
 if [[ -z "$BOT_TOKEN" ]]; then
 	echo -e "Warning! $RED Telegram BOT_TOKEN is not defined in $GUARD_CFG ! $CLEAR"
 fi
-# solana-validator -l /root/solana/ledger/ contact-info
+# agave-validator -l /root/solana/ledger/ contact-info
 if ! command -v bc &> /dev/null; then
     echo "Warning! 'bc' not installed. Please run 'apt install bc'"
     return 
@@ -249,8 +249,8 @@ GET_VOTING_IP(){
 	VOTING_IP=$REQUEST_ANSWER
     SERV="$USER@$VOTING_IP"
     # Получаем локальный валидатор
-    #local_validator=$(timeout 3 stdbuf -oL solana-validator --ledger $LEDGER monitor 2>/dev/null | grep -m1 Identity | awk -F': ' '{print $2}')
-    local_validator=$(solana-validator --ledger $LEDGER contact-info | grep "Identity:" | awk '{print $2}') # identity
+    #local_validator=$(timeout 3 stdbuf -oL agave-validator --ledger $LEDGER monitor 2>/dev/null | grep -m1 Identity | awk -F': ' '{print $2}')
+    local_validator=$(agave-validator --ledger $LEDGER contact-info | grep "Identity:" | awk '{print $2}') # identity
     if [[ $? -ne 0 ]]; then
         LOG "Error in GET_VOTING_IP: define local_validator"
         # return 1
@@ -277,7 +277,7 @@ SSH(){
 	local err_file="/tmp/ssh_error.tmp"
 	trap 'rm -f "$err_file"' EXIT # Trap для удаления временного файла при выходе
 
-  	command_output=$(ssh -o ConnectTimeout=2 -o ServerAliveInterval=2 -o ServerAliveCountMax=2 REMOTE $ssh_command 2>$err_file)
+  	command_output=$(timeout 3 ssh -o ConnectTimeout=2 -o ServerAliveInterval=2 -o ServerAliveCountMax=2 REMOTE $ssh_command 2>$err_file)
 	command_exit_status=$?
 		
 	# Диагностика SSH ошибок
@@ -553,7 +553,7 @@ SECONDARY_SERVER(){ ############################################################
 	SEND_INFO "${NODE}.${NAME}: switch voting from ${VOTING_IP} $REASON" # \n%s vote_off remote server
 	TVC1=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
  	switch_start_time=$(($(date +%s%N) / 1000000)) #
- 	SSH "$SOL_BIN/solana-validator -l $LEDGER set-identity $EMPTY_KEY 2>&1"
+ 	SSH "$SOL_BIN/agave-validator -l $LEDGER set-identity $EMPTY_KEY 2>&1"
 	if [ $command_exit_status -eq 0 ]; then
 		LOG "set empty identity on REMOTE server"
 	else
@@ -595,7 +595,7 @@ SECONDARY_SERVER(){ ############################################################
 	fi	
 
  	# check, if remote validator 'changing' / 'stop voting'
-	SSH "$SOL_BIN/solana-validator --ledger '$LEDGER' contact-info" # get remote validator info
+	SSH "$SOL_BIN/agave-validator --ledger '$LEDGER' contact-info" # get remote validator info
 	remote_validator=$(echo "$command_output" | grep "Identity:" | awk '{print $2}') # get remote voting identity
 	if [[ "$remote_validator" == "$IDENTITY" ]]; then
 		SEND_ALARM "Error! remote_validator still voting, so try to start voting later"
@@ -609,10 +609,10 @@ SECONDARY_SERVER(){ ############################################################
    	if (( $(echo "$time_diff >= 180.000" | bc -l) )); then # more than 180 seconds
 		SEND_ALARM "tower too old = ${time_diff}s"
    		TOWER_STATUS=' without tower'; 	
-	 	solana-validator -l $LEDGER set-identity $VOTING_KEY;
+	 	agave-validator -l $LEDGER set-identity $VOTING_KEY;
 	else
 	  	TOWER_STATUS=" with tower/${time_diff}s"; 	
-		solana-validator -l $LEDGER set-identity --require-tower $VOTING_KEY;
+		agave-validator -l $LEDGER set-identity --require-tower $VOTING_KEY;
 	fi
  	
 	set_identity_status=$?
@@ -636,7 +636,7 @@ SECONDARY_SERVER(){ ############################################################
   		SSH "systemctl disable relayer.service" # on remote server
   		systemctl enable relayer.service
 		systemctl start relayer.service
-  		solana-validator -l $LEDGER set-relayer-config --relayer-url http://127.0.0.1:11226
+  		agave-validator -l $LEDGER set-relayer-config --relayer-url http://127.0.0.1:11226
   		LOG "restart relayer service"
 	fi
 	### stop telegraf service on remote server
@@ -756,7 +756,7 @@ if [ "$remote_identity" != "$IDENTITY" ]; then
 fi
 
 # check remote server validator addr
-SSH "$SOL_BIN/solana-validator --ledger '$LEDGER' contact-info" # get remote validator info
+SSH "$SOL_BIN/agave-validator --ledger '$LEDGER' contact-info" # get remote validator info
 remote_validator=$(echo "$command_output" | grep "Identity:" | awk '{print $2}') # get remote voting identity
 if [ -z "$remote_validator" ]; then
 	echo -e "$RED remote_validator is missing  $CLEAR"
