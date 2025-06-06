@@ -604,7 +604,7 @@ SECONDARY_SERVER(){ ############################################################
 		LOG "remote_validator=$remote_validator, IDENTITY=$IDENTITY"
 		return
 	else
-		LOG "Remote_validator change OK"
+		LOG "Remote_validator changed OK: $remote_validator"
 	fi
    
    # START SOLANA on LOCAL server
