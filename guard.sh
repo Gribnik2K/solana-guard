@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.1
+GUARD_VER=v1.8.2
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -277,8 +277,10 @@ SSH(){
 	local err_file="/tmp/ssh_error.tmp"
 	trap 'rm -f "$err_file"' EXIT # Trap для удаления временного файла при выходе
 
-  	command_output=$(timeout 3 ssh -o ConnectTimeout=2 -o ServerAliveInterval=2 -o ServerAliveCountMax=2 REMOTE $ssh_command 2>$err_file)
+  	command_output=$(timeout 5 ssh -o ConnectTimeout=4 REMOTE $ssh_command 2>$err_file)
 	command_exit_status=$?
+ 	# timeout - ограничивает общее время выполнения ssh-команды (попытка соединения + выполнение команды)
+  	# ConnectTimeout - допустимое время на установления TCP-соединения
 		
 	# Диагностика SSH ошибок
   	if [ $command_exit_status -ne 0 ]; then
