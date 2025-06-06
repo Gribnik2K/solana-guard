@@ -73,43 +73,36 @@ Fetch the latest version and set up an alias:
 # download guard.sh
 LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
-echo "download latest release $TAG"
+
 if [ -d ~/solana-guard ]; then 
-  cd ~/solana-guard; 
-  git fetch origin; # get last updates from git
-  git reset --hard origin/main # 
+	echo "update latest release $TAG"
+	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/guard.sh > $HOME/solana-guard/guard.sh
+	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/check.sh > $HOME/solana-guard/check.sh
 else 
-  git clone https://github.com/Hohlas/solana-guard.git ~/solana-guard
+	echo "clone latest release $TAG"
+	git clone https://github.com/Hohlas/solana-guard.git ~/solana-guard
+	cd ~/solana-guard
+	git fetch --tags 
+	git checkout tags/$TAG
+	git submodule update --init --recursive
 fi
+
 chmod +x ~/solana-guard/guard.sh
 chmod +x ~/solana-guard/check.sh
 
+# set aliases
 BASHRC_FILE="$HOME/.bashrc"
-# set alias
 if [ -f "$HOME/.bashrc" ]; then
-    OLD_ALIAS="alias guard='source ~/sol_git/guard/guard.sh'"
 	NEW_ALIAS="alias guard='source ~/solana-guard/guard.sh'"
-	if grep -q "^$OLD_ALIAS" "$BASHRC_FILE"; then
-        sed -i.bak "s|^$OLD_ALIAS.*|$NEW_ALIAS|" "$BASHRC_FILE"
-        echo "change alias [$OLD_ALIAS]  - >  [$NEW_ALIAS]"
-    elif grep -q "^$NEW_ALIAS" "$BASHRC_FILE"; then
-        echo "alias already in use"
-    else
-        echo "$NEW_ALIAS" >> "$BASHRC_FILE"
-        echo "add new alias: [$NEW_ALIAS]"
-    fi
-
-	OLD_ALIAS="alias check='source ~/sol_git/setup/check.sh'"
+	if ! grep -qxF "$NEW_ALIAS" "$BASHRC_FILE"; then
+		echo "$NEW_ALIAS" >> "$BASHRC_FILE"
+		echo "add new alias: [$NEW_ALIAS]"
+	fi
 	NEW_ALIAS="alias check='source ~/solana-guard/check.sh'"
-	if grep -q "^$OLD_ALIAS" "$BASHRC_FILE"; then
-        sed -i.bak "s|^$OLD_ALIAS.*|$NEW_ALIAS|" "$BASHRC_FILE"
-        echo "change alias [$OLD_ALIAS]  - >  [$NEW_ALIAS]"
-    elif grep -q "^$NEW_ALIAS" "$BASHRC_FILE"; then
-        echo "alias already in use"
-    else
-        echo "$NEW_ALIAS" >> "$BASHRC_FILE"
-        echo "add new alias: [$NEW_ALIAS]"
-    fi
+	if ! grep -qxF "$NEW_ALIAS" "$BASHRC_FILE"; then
+		echo "$NEW_ALIAS" >> "$BASHRC_FILE"
+		echo "add new alias: [$NEW_ALIAS]"
+	fi
 else
     echo "file $HOME/.bashrc not found."
 fi
