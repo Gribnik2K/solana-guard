@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.7.7
+GUARD_VER=v1.7.8
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -555,7 +555,7 @@ SECONDARY_SERVER(){ ############################################################
  	switch_start_time=$(($(date +%s%N) / 1000000)) #
  	SSH "$SOL_BIN/solana-validator -l $LEDGER set-identity $EMPTY_KEY 2>&1"
 	if [ $command_exit_status -eq 0 ]; then
-		SEND_INFO "set empty identity on REMOTE server"
+		LOG "set empty identity on REMOTE server"
 	else
 		SEND_ALARM "Can't set identity on remote server"
   		LOG "Try to restart solana on remote server"
@@ -619,10 +619,8 @@ SECONDARY_SERVER(){ ############################################################
 	switch_stop_time=$(($(date +%s%N) / 1000000))
   	switch_time=$((switch_stop_time - switch_start_time))
    	switch_time=$(echo "scale=2; $switch_time / 1000" | bc) # convert to seconds
-	TVC2=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
-	TVC_DIFF=$((TVC2 - TVC1))
  	if [ $set_identity_status -eq 0 ]; then 
-		SEND_INFO "Start voting$TOWER_STATUS for ${switch_time}s TVC=$TVC2(-$TVC_DIFF)"
+		SEND_INFO "Start voting$TOWER_STATUS for ${switch_time}s"
 	else 
 		SEND_ALARM "Start voting Error: $set_identity_status, can't set identity"
   		return
@@ -654,8 +652,10 @@ SECONDARY_SERVER(){ ############################################################
   	if [[ $? -ne 0 ]]; then LOG "Error! start telegraf"
    	else LOG "start telegraf OK"
 	fi
-	LOG "waiting for PRIMARY status"
  	sleep 2
+  	TVC2=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
+	TVC_DIFF=$((TVC2 - TVC1))
+  	LOG "waiting for PRIMARY status, TVC=$TVC2(-$TVC_DIFF)"
 	#while [ $SERV_TYPE = "SECONDARY" ]; do
  		# LOG "waiting for PRIMARY status"
    		#GET_VOTING_IP
