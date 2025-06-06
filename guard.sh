@@ -1,9 +1,10 @@
 #!/bin/bash
-GUARD_VER=v1.7.6
+GUARD_VER=v1.7.7
 #=================== guard.cfg ========================
-PORT='2010' # remote server ssh port
+PORT='22' # remote server ssh port
 KEYS=$HOME/keys
-LOG_FILE=$HOME/guard.log
+LOG_FILE=$HOME/solana-guard/guard.log
+GUARD_CFG=$HOME/solana-guard/guard.cfg
 SOLANA_SERVICE="$HOME/solana/solana.service"
 BEHIND_WARNING=false # 'false'- send telegramm INFO missage, when behind. 'true'-send ALERT message
 WARNING_FREQUENCY=12 # max frequency of warning messages (WARNING_FREQUENCY x 5) seconds
@@ -43,18 +44,14 @@ SITES=("www.google.com" "www.bing.com")
 SOL_BIN="$(cat ${configDir}/install/config.yml | grep 'active_release_dir\:' | awk '{print $2}')/bin"
 GRAY=$'\033[90m'; GREEN=$'\033[32m'; RED=$'\033[31m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CLEAR=$'\033[0m'
 # ======================
-if [ -f "$HOME/guard.cfg" ]; then
-	if [ -r "$HOME/guard.cfg" ]; then
-    	source "$HOME/guard.cfg" # get settings
-     	KEYS=$(echo "$KEYS" | tr -d '\r') # Удаление символа \r, если он есть
-      	SOLANA_SERVICE=$(echo "$SOLANA_SERVICE" | tr -d '\r') # Удаление символа \r, если он есть
-	   	configDir=$(echo "$configDir" | tr -d '\r') # Удаление символа \r, если он есть
-	   	BOT_TOKEN=$(echo "$BOT_TOKEN" | tr -d '\r') # Удаление символа \r, если он есть
-  	else
-    	echo "Error: $HOME/guard.cfg exists but is not readable" >&2
-  	fi
+if [ -f "$GUARD_CFG" ]; then
+    source "$GUARD_CFG" # get settings
+    KEYS=$(echo "$KEYS" | tr -d '\r') # Удаление символа \r, если он есть
+    SOLANA_SERVICE=$(echo "$SOLANA_SERVICE" | tr -d '\r') # Удаление символа \r, если он есть
+	configDir=$(echo "$configDir" | tr -d '\r') # Удаление символа \r, если он есть
+	BOT_TOKEN=$(echo "$BOT_TOKEN" | tr -d '\r') # Удаление символа \r, если он есть
 else
-  	echo "Error: $HOME/guard.cfg does not exist, set default settings" >&2
+  	echo "Error: $GUARD_CFG does not exist, set default settings" >&2
 fi
 if [[ -f $LOG_FILE ]]; then
     rpc_index=$(grep -oP 'rpc_index=\K\d+' "$LOG_FILE" | tail -n 1) # Читаем последний rpc_index из лог-файла
@@ -62,10 +59,10 @@ fi
 if [[ -z "$RPC_LIST" ]]; then
     RPC_LIST=($rpcURL1) # Записываем в массив RPC сервер соланы, чтобы не было ошибки
 	rpc_index=0
-	echo -e "Warning! $RED RPC_LIST is not defined in $HOME/guard.cfg ! $CLEAR"
+	echo -e "Warning! $RED RPC_LIST is not defined in $GUARD_CFG ! $CLEAR"
 fi
 if [[ -z "$BOT_TOKEN" ]]; then
-	echo -e "Warning! $RED Telegram BOT_TOKEN is not defined in $HOME/guard.cfg ! $CLEAR"
+	echo -e "Warning! $RED Telegram BOT_TOKEN is not defined in $GUARD_CFG ! $CLEAR"
 fi
 # solana-validator -l /root/solana/ledger/ contact-info
 if ! command -v bc &> /dev/null; then
