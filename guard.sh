@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.7.1
+GUARD_VER=v1.7.6
 #=================== guard.cfg ========================
 PORT='2010' # remote server ssh port
 KEYS=$HOME/keys
@@ -7,8 +7,8 @@ LOG_FILE=$HOME/guard.log
 SOLANA_SERVICE="$HOME/solana/solana.service"
 BEHIND_WARNING=false # 'false'- send telegramm INFO missage, when behind. 'true'-send ALERT message
 WARNING_FREQUENCY=12 # max frequency of warning messages (WARNING_FREQUENCY x 5) seconds
-BEHIND_OK_VAL=3 # behind, that seemed ordinary
-RELAYER_SERVICE=false # use restarting jito-relayer service
+BEHIND_OK_VAL=1 # behind, that seemed ordinary
+RELAYER_SERVICE=true # use restarting jito-relayer service
 configDir="$HOME/.config/solana"
 # CHAT_ALARM=-1001..5684
 # CHAT_INFO=-1001..2888
@@ -19,9 +19,9 @@ configDir="$HOME/.config/solana"
 # "https://mainnet.helius-rpc.com..."
 # )
 #======================================================
-LEDGER=$(grep -oP '(?<=--ledger\s).*' "$SOLANA_SERVICE" | tr -d '\\' | xargs)
-EMPTY_KEY=$(grep -oP '(?<=--identity\s).*' "$SOLANA_SERVICE" | tr -d '\\') # get key path from solana.service
-VOTING_KEY=$(grep -oP '(?<=--authorized-voter\s).*' "$SOLANA_SERVICE" | tr -d '\\')
+LEDGER=$(grep -oP '(?<=--ledger\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
+EMPTY_KEY=$(grep -oP '(?<=--identity\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
+VOTING_KEY=$(grep -oP '(?<=--authorized-voter\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
 IDENTITY=$(solana address 2>/dev/null)
 if [ $? -ne 0 ]; then  
 	echo "Error! Can't run 'solana'"
@@ -115,7 +115,7 @@ REQUEST_DELINK(){
 		echo "$(TIME) Error in REQUEST_DELINK for RPC $RPC_URL" >> $LOG_FILE
 	fi
 	if [ -z "$VALIDATORS_LIST" ]; then 
-		echo "$(TIME) Error in REQUEST_DELINK: validators list emty" >> $LOG_FILE
+		echo "$(TIME) Error in REQUEST_DELINK: validators list empty" >> $LOG_FILE
 	fi	
 	JSON=$(echo "$VALIDATORS_LIST" | jq '.validators[] | select(.identityPubkey == "'"${IDENTITY}"'" )')
 	LastVote=$(echo "$JSON" | jq -r '.lastVote')
@@ -135,14 +135,26 @@ RPC_REQUEST() {
         FUNCTION_NAME="REQUEST_DELINK"
 	else
  		REQUEST_ANSWER=""; return
-    fi    	
+    fi 
+	# 1. ОДИН запрос к основному RPC 
+	REQUEST1=$(eval "$FUNCTION_NAME \"$rpcURL1\"")
+
+    # Проверка на ошибку или пустой ответ
+    if [[ -n "$REQUEST1" && "$REQUEST1" != "NULL" ]]; then
+        REQUEST_ANSWER="$REQUEST1"
+        Wrong_request_count=0
+        return
+    fi
+	# 2. Если ошибка или пусто — перепроверяем
 	rpcURL2="${RPC_LIST[$rpc_index]}" # Получаем текущий RPC URL из списка
 	REQUEST1=$(eval "$FUNCTION_NAME \"$rpcURL1\"") # запрос к РПЦ соланы
 	REQUEST2=$(eval "$FUNCTION_NAME \"$rpcURL2\"") # запрос к одному из РПЦ хелиуса из списка RPC_LIST
 	
 	# Сравнение результатов
     if [[ "$REQUEST1" == "$REQUEST2" ]]; then
-        REQUEST_ANSWER="$REQUEST1";	return 
+        REQUEST_ANSWER="$REQUEST1";	
+		Wrong_request_count=0
+  		return 
     fi    
 		#echo "$(TIME) Warning! Different answers: RPC1=$REQUEST1, RPC2=$REQUEST2" >> $LOG_FILE
 		# Если результаты разные, опрашиваем в цикле 10 раз
@@ -199,7 +211,7 @@ RPC_REQUEST() {
 		
    	if [[ $percentage -lt 70 ]]; then # не принимаем ответ, если он встречается в менее 70% запросов
   		((Wrong_request_count++))
-		if [[ $Wrong_request_count -ge 5 ]]; then # дохрена ошибок запросов RPC
+		if [[ $Wrong_request_count -ge 3 ]]; then # дохрена ошибок запросов RPC
             SEND_ALARM "$SERV_TYPE ${NODE}.${NAME} RPC.sol='$REQUEST1'/$RQST1_counter, RPC.$rpc_index='$REQUEST2'/$RQST2_counter, differ$percentage%"
             Wrong_request_count=0  # Сбрасываем счетчик после предупреждения
         fi
@@ -542,7 +554,8 @@ SECONDARY_SERVER(){ ############################################################
   	LOG "Let's stop voting on remote server "
    	LOG "CHECK_UP=$CHECK_UP, HEALTH=$HEALTH, BEHIND=$BEHIND, REASON=$REASON, set_primary=$set_primary, Delinquent=$Delinquent, VOTING_IP=$VOTING_IP  "
 	SEND_INFO "${NODE}.${NAME}: switch voting from ${VOTING_IP} $REASON" # \n%s vote_off remote server
-	switch_start_time=$(($(date +%s%N) / 1000000)) #
+	TVC1=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
+ 	switch_start_time=$(($(date +%s%N) / 1000000)) #
  	SSH "$SOL_BIN/solana-validator -l $LEDGER set-identity $EMPTY_KEY 2>&1"
 	if [ $command_exit_status -eq 0 ]; then
 		SEND_INFO "set empty identity on REMOTE server"
@@ -609,8 +622,10 @@ SECONDARY_SERVER(){ ############################################################
 	switch_stop_time=$(($(date +%s%N) / 1000000))
   	switch_time=$((switch_stop_time - switch_start_time))
    	switch_time=$(echo "scale=2; $switch_time / 1000" | bc) # convert to seconds
+	TVC2=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
+	TVC_DIFF=$((TVC2 - TVC1))
  	if [ $set_identity_status -eq 0 ]; then 
-		SEND_INFO "Start voting$TOWER_STATUS for ${switch_time}s"
+		SEND_INFO "Start voting$TOWER_STATUS for ${switch_time}s TVC=$TVC2(-$TVC_DIFF)"
 	else 
 		SEND_ALARM "Start voting Error: $set_identity_status, can't set identity"
   		return
@@ -635,8 +650,10 @@ SECONDARY_SERVER(){ ############################################################
 	elif [ $command_exit_status -eq 124 ]; then LOG "stop telegraf on remote server timeout exceed"
  	else LOG "stop telegraf on remote server Error"
 	fi
+ 	SSH "systemctl disable telegraf"
 	### start telegraf service on local server
- 	systemctl start telegraf
+ 	systemctl enable telegraf
+  	systemctl start telegraf
   	if [[ $? -ne 0 ]]; then LOG "Error! start telegraf"
    	else LOG "start telegraf OK"
 	fi
