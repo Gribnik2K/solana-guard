@@ -192,13 +192,6 @@ A utility for convenient server status monitoring.
 
 ![Check Status](https://github.com/user-attachments/assets/efe5076e-ead2-4ec9-841a-e9ed61a4d309)
 
-Install \`check.sh\':
-```bash
-# установка
-curl "https://raw.githubusercontent.com/Hohlas/solana/main/setup/check.sh" > $HOME/check.sh
-chmod +x $HOME/check.sh
-echo "alias check='source $HOME/check.sh'" >> $HOME/.bashrc
-```
 
 ## Notes
 - Ensure \`bc\` is installed (\`apt install bc\`) for numerical calculations.
