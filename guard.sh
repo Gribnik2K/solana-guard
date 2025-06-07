@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.3
+GUARD_VER=v1.8.4
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -668,8 +668,14 @@ SECONDARY_SERVER(){ ############################################################
 ##########################################################################
 
 echo ""; echo "";
-echo -e " == SOLANA GUARD $BLUE$GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
-#source ~/sol_git/setup/check.sh
+LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
+LATEST_TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
+if [ "$LATEST_TAG" != "$GUARD_VER" ]; then
+  echo -e " == SOLANA GUARD == New release $BLUE$LATEST_TAG$CLEAR is available, current $RED$GUARD_VER$CLEAR" | tee -a $LOG_FILE
+  echo "run 'guard u' to update"
+else
+  echo -e " == SOLANA GUARD $BLUE$GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
+fi
 GET_VOTING_IP
 echo "ledger path: [$LEDGER]"
 echo "voting  IP=$VOTING_IP" | tee -a $LOG_FILE
@@ -694,20 +700,23 @@ fi
 echo -e " $BLUE$NODE.$NAME $YELLOW$version $client $CLEAR"
 
 
-# GET_VOTING_IP
 argument=$1 # read script argument
 primary_mode=''
+behind_threshold="0"
 if [[ $argument =~ ^[0-9]+$ ]] && [ "$argument" -gt 0 ]; then
     	behind_threshold=$argument # 
 	echo -e "$RED behind threshold = $behind_threshold  $CLEAR"
-else
-    behind_threshold="0"
-	primary_mode=$argument 
-fi
-if [[ $primary_mode == "p" ]]; then 
+elif [[ $argument == "p" ]]; then
 	primary_mode='permanent_primary'; 
-	echo -e "start guard in $YELLOW Permanent Primary mode$CLEAR"
+	echo -e " WARNING! start guard in $REDPermanent Primary mode $CLEAR"
+elif [[ $argument == "u" ]]; then
+	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/guard.sh > $HOME/solana-guard/guard.sh
+	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/check.sh > $HOME/solana-guard/check.sh
+	chmod +x ~/solana-guard/guard.sh
+	chmod +x ~/solana-guard/check.sh
+	echo -e " Updated to latest release $BLUE$LATEST_TAG $CLEAR"
 fi	
+
 if [[ "$SERV_TYPE" == "PRIMARY" ]]; then # PRIMARY can't determine REMOTE_IP of SECONDARY
 	if [ -f $HOME/solana-guard/remote_ip ]; then # SECONDARY should have written its IP to PRIMARY
 		REMOTE_IP=$(cat $HOME/solana-guard/remote_ip) # echo "get REMOTE_IP of SECONDARY_SERVER from $HOME/solana-guard/remote_ip: $REMOTE_IP"
