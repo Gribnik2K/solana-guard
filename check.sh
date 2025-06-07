@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHECK_VER=v1.3.9
+CHECK_VER=v1.4.0
 rpcURL=$(solana config get | grep "RPC URL" | awk '{print $3}')
 #===========================================
 SOLANA_SERVICE="$HOME/solana/solana.service"
@@ -14,15 +14,15 @@ elif [ $rpcURL = https://api.mainnet-beta.solana.com ]; then
 	NODE="main"; 
 fi
 #===========================================
-version=$(solana-validator --version 2>/dev/null)
+version=$(agave-validator --version 2>/dev/null)
 if [ $? -ne 0 ]; then
-    echo "Error! Can't run 'solana-validator'"
+    echo "Error! Can't run 'agave-validator'"
 	return
 else
 	version=$(echo "$version" | awk -F '[ ()]' '{print $1, $2, $NF}' | sed 's/client://')
 fi	
 client=$(solana --version | awk -F'client:' '{print $2}' | tr -d ')')
-current_validator=$(timeout 3 stdbuf -oL solana-validator --ledger $LEDGER monitor 2>/dev/null | grep -m1 Identity | awk -F': ' '{print $2}')
+current_validator=$(timeout 3 stdbuf -oL agave-validator --ledger $LEDGER monitor 2>/dev/null | grep -m1 Identity | awk -F': ' '{print $2}')
 #===========================================
 EMPTY_ADDR=$(solana address -k $EMPTY_KEY)
 VOTING_ADDR=$(solana address -k $VOTING_KEY)
