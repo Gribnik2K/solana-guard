@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.5
+GUARD_VER=v1.8.6
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -677,7 +677,7 @@ else
   echo -e " == SOLANA GUARD $BLUE$GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
 fi
 GET_VOTING_IP
-echo "ledger path: [$LEDGER]"
+#echo "ledger path: [$LEDGER]"
 echo "voting  IP=$VOTING_IP" | tee -a $LOG_FILE
 echo "current IP=$CUR_IP" | tee -a $LOG_FILE
 echo -e "IDENTITY  = $GREEN$IDENTITY $CLEAR" | tee -a $LOG_FILE
@@ -749,7 +749,7 @@ IdentityFile $KEYS/*.ssh
 " > ~/.ssh/config
 
 # check remote server SSH connection (by reading Identity addr)
-status=$(ssh REMOTE "echo ok")
+status=$(timeout 5 ssh REMOTE "echo ok")
 if [[ $status == ok ]]; then
   echo "SSH connection established"
 else
