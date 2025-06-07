@@ -708,13 +708,13 @@ if [[ $argument =~ ^[0-9]+$ ]] && [ "$argument" -gt 0 ]; then
 	echo -e "$RED behind threshold = $behind_threshold  $CLEAR"
 elif [[ $argument == "p" ]]; then
 	primary_mode='permanent_primary'; 
-	echo -e " WARNING! start guard in $REDPermanent Primary mode $CLEAR"
+	echo -e " WARNING! start guard in$RED Permanent Primary mode $CLEAR"
 elif [[ $argument == "u" ]]; then
 	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/guard.sh > $HOME/solana-guard/guard.sh
 	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/check.sh > $HOME/solana-guard/check.sh
 	chmod +x ~/solana-guard/guard.sh
 	chmod +x ~/solana-guard/check.sh
-	echo -e " Updated to latest release $BLUE$LATEST_TAG $CLEAR"
+	echo -e " Updated to latest release$BLUE $LATEST_TAG $CLEAR"
 fi	
 
 if [[ "$SERV_TYPE" == "PRIMARY" ]]; then # PRIMARY can't determine REMOTE_IP of SECONDARY
