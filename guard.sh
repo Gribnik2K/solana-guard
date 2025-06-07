@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.7
+GUARD_VER=v1.8.8
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -667,15 +667,34 @@ SECONDARY_SERVER(){ ############################################################
 
 ##########################################################################
 
-echo ""; echo "";
+echo "";
 LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 LATEST_TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
+
 if [ "$LATEST_TAG" != "$GUARD_VER" ]; then
-  echo -e " == SOLANA GUARD == New release $BLUE$LATEST_TAG$CLEAR is available, current $RED$GUARD_VER$CLEAR" | tee -a $LOG_FILE
-  echo "run 'guard u' to update"
+  echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  $GRAY run 'guard u' to update to $LATEST_TAG release $CLEAR" | tee -a $LOG_FILE
 else
-  echo -e " == SOLANA GUARD $BLUE$GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
+  echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
 fi
+
+argument=$1 # read script argument
+primary_mode=''
+behind_threshold="0"
+if [[ $argument =~ ^[0-9]+$ ]] && [ "$argument" -gt 0 ]; then
+    	behind_threshold=$argument # 
+	echo -e "$RED behind threshold = $behind_threshold  $CLEAR"
+elif [[ $argument == "p" ]]; then
+	primary_mode='permanent_primary'; 
+	echo -e " WARNING!!! $RED PERMANENT PRIMARY mode $CLEAR !!!"
+elif [[ $argument == "u" ]]; then
+	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/guard.sh > $HOME/solana-guard/guard.sh
+	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/check.sh > $HOME/solana-guard/check.sh
+	chmod +x ~/solana-guard/guard.sh
+	chmod +x ~/solana-guard/check.sh
+	echo -e " Updated to latest release$BLUE $LATEST_TAG $CLEAR"
+	return
+fi
+
 GET_VOTING_IP
 #echo "ledger path: [$LEDGER]"
 echo "voting  IP=$VOTING_IP" | tee -a $LOG_FILE
@@ -698,24 +717,6 @@ elif [ $rpcURL1 = https://api.mainnet-beta.solana.com ]; then
 NODE="main"
 fi
 echo -e " $BLUE$NODE.$NAME $YELLOW$version $client $CLEAR"
-
-
-argument=$1 # read script argument
-primary_mode=''
-behind_threshold="0"
-if [[ $argument =~ ^[0-9]+$ ]] && [ "$argument" -gt 0 ]; then
-    	behind_threshold=$argument # 
-	echo -e "$RED behind threshold = $behind_threshold  $CLEAR"
-elif [[ $argument == "p" ]]; then
-	primary_mode='permanent_primary'; 
-	echo -e " WARNING!!! start guard in $RED PERMANENT PRIMARY mode $CLEAR !!!"
-elif [[ $argument == "u" ]]; then
-	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/guard.sh > $HOME/solana-guard/guard.sh
-	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/check.sh > $HOME/solana-guard/check.sh
-	chmod +x ~/solana-guard/guard.sh
-	chmod +x ~/solana-guard/check.sh
-	echo -e " Updated to latest release$BLUE $LATEST_TAG $CLEAR"
-fi	
 
 if [[ "$SERV_TYPE" == "PRIMARY" ]]; then # PRIMARY can't determine REMOTE_IP of SECONDARY
 	if [ -f $HOME/solana-guard/remote_ip ]; then # SECONDARY should have written its IP to PRIMARY
