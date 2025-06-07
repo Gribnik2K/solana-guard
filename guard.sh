@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.6
+GUARD_VER=v1.8.7
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -749,18 +749,13 @@ IdentityFile $KEYS/*.ssh
 " > ~/.ssh/config
 
 # check remote server SSH connection (by reading Identity addr)
-status=$(timeout 5 ssh REMOTE "echo ok")
-if [[ $status == ok ]]; then
-  echo "SSH connection established"
-else
-  echo "SSH error: $status"
-fi
+ssh REMOTE "echo ssh connection OK"
 SSH "$SOL_BIN/solana address"
 if [ $command_exit_status -eq  0 ]; then
 	remote_identity=$command_output
-	echo "check solana on remote server OK"	
+	echo "remote server solana OK"	
 else
-	echo -e "$RED SSH connection with remote server not available  $CLEAR" 
+	echo -e "$RED Can't run solana on remote server $CLEAR" 
 	return
 fi
 
