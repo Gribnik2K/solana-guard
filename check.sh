@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHECK_VER=v1.4.0
+CHECK_VER=v1.4.0 # new
 rpcURL=$(solana config get | grep "RPC URL" | awk '{print $3}')
 #===========================================
 SOLANA_SERVICE="$HOME/solana/solana.service"
