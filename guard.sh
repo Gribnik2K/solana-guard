@@ -637,6 +637,10 @@ SECONDARY_SERVER(){ ############################################################
  		else LOG "stop relayer on remote server Error"
 		fi
   		SSH "systemctl disable relayer.service" # on remote server
+		if [ $command_exit_status -eq 0 ]; then LOG "disable relayer on remote server OK"
+		elif [ $command_exit_status -eq 124 ]; then LOG "disable relayer on remote server timeout exceed"
+ 		else LOG "disable relayer on remote server Error"
+		fi
 		ln -sf ~/solana/relayer.service /etc/systemd/system
 		systemctl daemon-reload
   		systemctl enable relayer.service
