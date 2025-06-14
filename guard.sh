@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.9
+GUARD_VER=v1.8.10
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -629,7 +629,7 @@ SECONDARY_SERVER(){ ############################################################
   		return
 	fi
  	
-	# stop relayer service on remote server
+	# restart relayer service
  	if [[ $RELAYER_SERVICE == 'true' ]]; then 
  		SSH "systemctl stop relayer.service"
    		if [ $command_exit_status -eq 0 ]; then LOG "stop relayer on remote server OK"
@@ -637,12 +637,14 @@ SECONDARY_SERVER(){ ############################################################
  		else LOG "stop relayer on remote server Error"
 		fi
   		SSH "systemctl disable relayer.service" # on remote server
+		ln -sf ~/solana/relayer.service /etc/systemd/system
+		systemctl daemon-reload
   		systemctl enable relayer.service
 		systemctl start relayer.service
   		agave-validator -l $LEDGER set-relayer-config --relayer-url http://127.0.0.1:11226
   		LOG "restart relayer service"
 	fi
-	### stop telegraf service on remote server
+	### restart telegraf service
 	SSH "systemctl stop telegraf"
 	if [ $command_exit_status -eq 0 ]; then LOG "stop telegraf on remote server OK"
 	elif [ $command_exit_status -eq 124 ]; then LOG "stop telegraf on remote server timeout exceed"
