@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.10
+GUARD_VER=v1.8.11
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -631,9 +631,9 @@ SECONDARY_SERVER(){ ############################################################
  	
 	# restart relayer service
  	if [[ $RELAYER_SERVICE == 'true' ]]; then 
- 		SSH "systemctl stop relayer.service"
-   		if [ $command_exit_status -eq 0 ]; then LOG "stop relayer on remote server OK"
-		elif [ $command_exit_status -eq 124 ]; then LOG "stop relayer on remote server timeout exceed"
+ 		timeout 6 ssh REMOTE  "systemctl stop relayer.service" # big timeout for this command needed
+   		if [ $? -eq 0 ]; then LOG "stop relayer on remote server OK"
+		elif [ $? -eq 124 ]; then LOG "stop relayer on remote server timeout exceed"
  		else LOG "stop relayer on remote server Error"
 		fi
   		SSH "systemctl disable relayer.service" # on remote server
@@ -679,7 +679,7 @@ LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 LATEST_TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
 
 if [ "$LATEST_TAG" != "$GUARD_VER" ]; then
-  echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  $GRAY run 'guard u' to update to $LATEST_TAG release $CLEAR" | tee -a $LOG_FILE
+  echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  $GRAY run '$GREENguard u$CLEAR' to update to $LATEST_TAG release $CLEAR" | tee -a $LOG_FILE
 else
   echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
 fi
@@ -709,7 +709,7 @@ echo "current IP=$CUR_IP" | tee -a $LOG_FILE
 echo -e "IDENTITY  = $GREEN$IDENTITY $CLEAR" | tee -a $LOG_FILE
 echo -e "empty addr = $GRAY$EMPTY_ADDR $CLEAR" | tee -a $LOG_FILE
 if [[ -z "$rpc_index" ]]; then # rpc_index not defined
-	echo "rpc_index not defined in $LOG_FILE, set default value rpc_index=0"
+	LOG "rpc_index not defined in $LOG_FILE, set default value rpc_index=0"
 	rpc_index=0; # Устанавливаем значение по умолчанию
 fi
 echo " Helius rpc_index=$rpc_index, rpcURL list:"
