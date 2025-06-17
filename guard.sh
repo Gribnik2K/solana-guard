@@ -679,7 +679,7 @@ LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
 LATEST_TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
 
 if [ "$LATEST_TAG" != "$GUARD_VER" ]; then
-  echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  $GRAY run '$GREEN guard u$CLEAR ' to update to $LATEST_TAG release $CLEAR" | tee -a $LOG_FILE
+  echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  $GRAY run ' $GREENguard u$CLEAR ' to update to $LATEST_TAG release $CLEAR" | tee -a $LOG_FILE
 else
   echo -e " ==$BLUE SOLANA GUARD $GUARD_VER $CLEAR ==  " | tee -a $LOG_FILE
 fi
