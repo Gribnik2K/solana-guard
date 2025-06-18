@@ -198,6 +198,12 @@ Place private SSH keys (\`any_name.ssh\`) for both servers in \`~/keys\`.
 ### Launch Order
 Run \`guard.sh\` on the secondary server first to copy its IP to the primary server. Subsequent launches can be in any order.
 
+### Update
+The script automatically notifies when a new guard version is available. To update, simply run \`guard u\` — the latest version will be downloaded and installed automatically. 
+
+![Update](https://github.com/user-attachments/assets/e7e20789-a0b0-46a6-aab6-f11c7f519232)
+
+
 ## Companion Script: \`check.sh\`
 A utility for convenient server status monitoring.
 
