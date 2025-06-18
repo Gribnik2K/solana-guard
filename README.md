@@ -41,7 +41,7 @@ Solana Guard is a multifunctional script for seamless Solana validator failover.
   ![Permanent Primary](https://github.com/user-attachments/assets/41889c56-9537-4d29-b889-807c92ae472c)
 
 
-- **Proactive Failover**: Triggers voting failover if the primary server is Behind for \`X*5\` seconds (configured with \`guard X\`), without waiting for Delinquent status.
+- **Proactive Failover**: Triggers voting failover if the primary server is Behind for \`X*5\` seconds (run with \`guard X\` argument), without waiting for Delinquent status.
 
   ![Guard with Threshold](https://github.com/user-attachments/assets/4c121091-6b62-4e81-85b6-d2458ccc1e88)
 
