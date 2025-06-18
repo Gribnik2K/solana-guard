@@ -168,10 +168,11 @@ ln -sf /mnt/keys/vote-keypair.json ~/solana/vote.json
 ln -sf /mnt/keys/validator-keypair.json ~/solana/validator-keypair.json
 ```
 
-### Configure \`guard.cfg\`
-Settings are stored in \`~/guard.cfg\`. For Telegram notifications, a \`BOT_TOKEN\` is required.
 
-To improve reliability, the script queries an alternative RPC ([Helius RPC](https://dashboard.helius.dev)) alongside Solana's RPC. If responses match, the result is accepted. If they differ, 10 additional queries are made to each RPC, accepting the answer if 75% of responses agree. A free Helius account lasts about three days, so the script cycles through the \`RPC_LIST\` when one server stops responding.
+### Configure \`guard.cfg\`
+Settings are stored in \`~/solana-guard/guard.cfg\`. For Telegram notifications, a \`BOT_TOKEN\` is required.
+
+To improve reliability, the script queries an alternative RPC ([Helius RPC](https://dashboard.helius.dev)) alongside Solana's RPC. If responses match, the result is accepted. If they differ, 10 additional queries are made to each RPC, accepting the answer if 70% of responses agree. Two free Helius accounts should be enough for a month. So the script cycles through the \`RPC_LIST\` when one server stops responding. Next month, the same accounts can be used again.
 
 Example \`guard.cfg\':
 ```bash
@@ -194,6 +195,7 @@ RPC_LIST=(
 
 ### SSH Key Setup
 Place private SSH keys (\`any_name.ssh\`) for both servers in \`~/keys\`.
+Note, that the same SOLANA_SERVICE and KEYS paths must be used on both servers!
 
 ### Launch Order
 Run \`guard.sh\` on the secondary server first to copy its IP to the primary server. Subsequent launches can be in any order.
