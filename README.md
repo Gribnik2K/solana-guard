@@ -3,7 +3,8 @@
 
 A script for seamless voting failover between primary and secondary Solana nodes.
 
-![Guard Overview](https://github.com/user-attachments/assets/fc4895a3-e356-43f4-b807-dd3a020a8925)
+![Guard Overview](https://github.com/user-attachments/assets/fe88aafe-5b4a-4cbf-911e-27bb94b77f8b)
+
 
 ## Key Features
 
