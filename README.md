@@ -1,15 +1,15 @@
 [Русский](README_RU.md)
 # [guard.sh](https://github.com/Hohlas/solana-guard/blob/main/guard.sh)
 
-A script for seamless voting failover between primary and secondary Solana nodes.
+Solana Guard is a multifunctional script for seamless Solana validator failover. It continuously monitors your validator’s status and automatically fixes node and network issues by switching voting to a backup server, keeping your node online and the Solana network resilient.
 
 ![Guard Overview](https://github.com/user-attachments/assets/fe88aafe-5b4a-4cbf-911e-27bb94b77f8b)
 
 
 ## Key Features
 
-- **Automatic Failover**: Switches voting to the secondary server when the primary server node enters Delinquent status.
-- **Forced Failover**: Initiates voting on the secondary server with the \`guard p\` argument, provided there is sufficient time before the next block and the secondary server's health and Behind status are satisfactory.
+- **Automatic Failover**: Instantly switches voting to the secondary (backup) server when the primary server node fails.
+- **Forced Failover**: Switches voting while node upgrade with the \`guard p\` argument in just 1–2 seconds, with the minimum TCV loss. The script checks if there is sufficient time before the next block and verifies the secondary server's health and Behind status before automatically initiating voting.
 - **Continuous Operation**: Automatically adjusts server roles (Primary/Secondary) based on node voting status without requiring a script restart.
 - **Mutual Monitoring**: The primary server monitors the \`guard.sh\` script on the secondary server, and vice versa, preventing accidental monitoring interruptions.
 - **Node Health Monitoring**: Tracks critical metrics for both servers, including:
@@ -38,7 +38,7 @@ A script for seamless voting failover between primary and secondary Solana nodes
   ![Guard with Threshold](https://github.com/user-attachments/assets/4c121091-6b62-4e81-85b6-d2458ccc1e88)
 
 
-- **Connection Loss Handling**: Restarts the Solana service in "No Voting" mode on the primary server if internet connectivity is lost for over 15 seconds.
+- **Connection Loss Handling**: Restarts the Solana service in "No Voting" mode on the primary server if internet connectivity is lost for over 15 seconds, in order to prevent duplicate voting.
 - **Service Management**: Synchronizes \`telegraf\` and \`relayer\` services with the Primary/Secondary status of each server.
 
 ## Secondary Server Workflow
@@ -51,7 +51,7 @@ A script for seamless voting failover between primary and secondary Solana nodes
   - The \`permanent_primary\` flag is set with \`guard p\`.
 - **Failover Process**:
   - Disables voting on the primary server by switching to a non-voting key.
-  - Copies the tower file from the primary server (updated every 5 seconds to handle potential internet outages).
+  - Copies the tower file from the primary server (updated every 5 seconds to handle potential internet outages).This way, if the internet connection on the Primary server becomes unavailable, the latest up-to-date tower file will be available for failover and launching the Solana validator on the backup server.
   - Enables voting on the secondary server.
   - Disables \`telegraf\` and \`relayer\` services on the primary server and enables them on the secondary.
   - Waits for the network to update the node's IP address, transitioning from Secondary to Primary status.
