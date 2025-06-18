@@ -17,7 +17,8 @@ A script for seamless voting failover between primary and secondary Solana nodes
   - Health status (\`health\`).
   - Behind status for both local and remote servers.
 
-  ![Node Status](https://github.com/user-attachments/assets/86e854f3-dd91-467f-983d-66c5a9fc346a)
+  ![Node Status](https://github.com/user-attachments/assets/ecc683bf-252e-4c52-86e0-c60e9bf6f876)
+
 
 - **Comprehensive Logging**: Records all events, including Behind incidents and node switches, in a log file.
 
