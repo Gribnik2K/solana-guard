@@ -32,6 +32,9 @@ Solana Guard is a multifunctional script for seamless Solana validator failover.
 
   ![Telegram Start voting](https://github.com/user-attachments/assets/a9321895-9523-4e89-a155-5872fe11fe2a)
 
+  ![Telegram behind](https://github.com/user-attachments/assets/4efc9ece-b212-415f-89f5-0f2b41af0c0c)
+
+
 
 - **Priority Server Assignment**: Designates a priority server for voting with the \`guard p\` argument, automatically reverting voting to the priority server once its health and Behind status normalize.
 
