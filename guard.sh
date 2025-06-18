@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.11
+GUARD_VER=v1.8.12
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -631,7 +631,7 @@ SECONDARY_SERVER(){ ############################################################
  	
 	# restart relayer service
  	if [[ $RELAYER_SERVICE == 'true' ]]; then 
- 		timeout 6 ssh REMOTE  "systemctl stop relayer.service" # big timeout for this command needed
+ 		timeout 10 ssh REMOTE  "systemctl stop relayer.service" # big timeout for this command needed
    		if [ $? -eq 0 ]; then LOG "stop relayer on remote server OK"
 		elif [ $? -eq 124 ]; then LOG "stop relayer on remote server timeout exceed"
  		else LOG "stop relayer on remote server Error"
