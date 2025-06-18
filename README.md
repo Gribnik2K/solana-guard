@@ -29,11 +29,13 @@ A script for seamless voting failover between primary and secondary Solana nodes
 
 - **Priority Server Assignment**: Designates a priority server for voting with the \`guard p\` argument, automatically reverting voting to the priority server once its health and Behind status normalize.
 
-  ![Permanent Primary](https://github.com/user-attachments/assets/c088160d-1385-48fd-8512-b59d225cee68)
+  ![Permanent Primary](https://github.com/user-attachments/assets/47dba555-5daf-49ce-a0ff-51bea7a7ba2b)
+
 
 - **Proactive Failover**: Triggers voting failover if the primary server is Behind for \`X*5\` seconds (configured with \`guard X\`), without waiting for Delinquent status.
 
-  ![Guard with Threshold](https://github.com/user-attachments/assets/be7acc25-26f4-40a0-84c8-4be7855ece3b)
+  ![Guard with Threshold](https://github.com/user-attachments/assets/4c121091-6b62-4e81-85b6-d2458ccc1e88)
+
 
 - **Connection Loss Handling**: Restarts the Solana service in "No Voting" mode on the primary server if internet connectivity is lost for over 15 seconds.
 - **Service Management**: Synchronizes \`telegraf\` and \`relayer\` services with the Primary/Secondary status of each server.
