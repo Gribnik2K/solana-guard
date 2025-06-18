@@ -26,7 +26,8 @@ Solana Guard is a multifunctional script for seamless Solana validator failover.
 
 - **Telegram Alerts**: Sends notifications for node switches and Behind events on both servers via Telegram.
 
-  ![Telegram Info](https://github.com/user-attachments/assets/39973c04-1557-47f1-9234-361a32c449ba) 
+  ![Telegram Info](https://github.com/user-attachments/assets/39973c04-1557-47f1-9234-361a32c449ba)
+  
   ![Telegram Alert](https://github.com/user-attachments/assets/bb70a748-9c7e-4e81-90da-a741645402c1)
 
 
