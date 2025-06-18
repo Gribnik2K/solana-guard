@@ -216,3 +216,6 @@ A utility for convenient server status monitoring.
 - Ensure \`bc\` is installed (\`apt install bc\`) for numerical calculations.
 - The secondary server must be fully operational and reachable via SSH before running \`guard.sh\` on the primary server.
 - Regularly update \`guard.sh\` to the latest version to benefit from bug fixes and improvements.
+
+## My validator
+[Hohla](https://stakewiz.com/validator/3FLezD8GJgnawEHhZcsjdPxZVar9FzqEdViusQ5ZdSwe)
