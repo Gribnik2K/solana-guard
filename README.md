@@ -26,7 +26,9 @@ Solana Guard is a multifunctional script for seamless Solana validator failover.
 
 - **Telegram Alerts**: Sends notifications for node switches and Behind events on both servers via Telegram.
 
-  ![Telegram Alert](https://github.com/user-attachments/assets/7aa14095-c7bf-48c2-bbe8-8d0accf653e7)
+  ![Telegram Info](https://github.com/user-attachments/assets/39973c04-1557-47f1-9234-361a32c449ba)
+  ![Telegram Alert](https://github.com/user-attachments/assets/bb70a748-9c7e-4e81-90da-a741645402c1)
+
 
 - **Priority Server Assignment**: Designates a priority server for voting with the \`guard p\` argument, automatically reverting voting to the priority server once its health and Behind status normalize.
 
