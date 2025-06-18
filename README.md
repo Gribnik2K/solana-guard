@@ -36,9 +36,9 @@ Solana Guard is a multifunctional script for seamless Solana validator failover.
 
 
 
-- **Priority Server Assignment**: Designates a priority server for voting with the \`guard p\` argument, automatically reverting voting to the priority server once its health and Behind status normalize.
+- **Permanent primary mode**: Designates a priority server for voting with the \`guard p\` argument, automatically reverting voting to the priority server once its health and Behind status normalize.
 
-  ![Permanent Primary](https://github.com/user-attachments/assets/47dba555-5daf-49ce-a0ff-51bea7a7ba2b)
+  ![Permanent Primary](https://github.com/user-attachments/assets/41889c56-9537-4d29-b889-807c92ae472c)
 
 
 - **Proactive Failover**: Triggers voting failover if the primary server is Behind for \`X*5\` seconds (configured with \`guard X\`), without waiting for Delinquent status.
