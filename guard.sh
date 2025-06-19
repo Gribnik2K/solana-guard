@@ -542,6 +542,7 @@ PRIMARY_SERVER(){ ##############################################################
 		CHECK_CONNECTION
 		CHECK_HEALTH
 		GET_VOTING_IP
+		CHECK_RELAYER
   		sleep 3
 	done
 	LOG "PRIMARY status ended"
@@ -550,6 +551,9 @@ PRIMARY_SERVER(){ ##############################################################
 	
 SECONDARY_SERVER(){ ##################################################################
 	SEND_INFO "SECONDARY ${NODE}.${NAME} $CUR_IP start"
+	if [[ $RELAYER_SERVICE == 'true' && systemctl is-active --quiet "$RELAYER_SERVICE_NAME" ]]; then
+		systemctl stop "$RELAYER_SERVICE_NAME"
+	fi
 	# waiting remote server fail and selfcheck health
 	set_primary=0 # 
 	REASON=''
