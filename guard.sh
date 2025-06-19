@@ -515,14 +515,13 @@ COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
 
 
 RELAYER_SERVICE_NAME="relayer.service"
-RELAYER_ERRORS="aoi updates disconnected|block engine failed|error authenticating and connecting|BlockEngineFailure"
+RELAYER_ERRORS="error authenticating and connecting|BlockEngineFailure"
 CHECK_RELAYER(){ # check relayer service on current server
 	if [[ $RELAYER_SERVICE == 'true' ]]; then
 		if systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
-			LOG "Relayer is active"
     		MATCHES=$(journalctl -u "$RELAYER_SERVICE_NAME" --since "3 seconds ago" | grep -E "$RELAYER_ERRORS")
 			if [[ -n "$MATCHES" ]]; then
-				LOG  "Detected relayer conflict: $MATCHES"
+				LOG  "Error: Detected relayer conflict"
 			fi
 		else
 			LOG  "Relayer inactive! try to restart it"
@@ -553,7 +552,13 @@ PRIMARY_SERVER(){ ##############################################################
 SECONDARY_SERVER(){ ##################################################################
 	SEND_INFO "SECONDARY ${NODE}.${NAME} $CUR_IP start"
 	if [[ $RELAYER_SERVICE == 'true' ]] && systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
+		LOG  "Relayer is active! try to stop it"
 		systemctl stop "$RELAYER_SERVICE_NAME"
+		if [[ $? -eq 0 ]]; then
+			LOG "Relayer stoped successfully"
+		else
+			LOG "Error: Relayer stop failed"
+		fi
 	fi
 	# waiting remote server fail and selfcheck health
 	set_primary=0 # 
