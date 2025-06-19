@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.12
+GUARD_VER=v1.8.13
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -512,6 +512,28 @@ COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
     
     return $scp_status
 }
+
+
+RELAYER_SERVICE_NAME="relayer.service"
+RELAYER_ERRORS="aoi updates disconnected|block engine failed|error authenticating and connecting|block_engine_relayer-error"
+CHECK_RELAYER(){ # check relayer service on current server
+	if [[ $RELAYER_SERVICE == 'true' ]]; then
+		if systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
+    		MATCHES=$(journalctl -u "$RELAYER_SERVICE_NAME" --since "1 seconds ago" | grep -E "$RELAYER_ERRORS")
+			if [[ -n "$MATCHES" ]]; then
+				LOG  "Detected relayer conflict: $MATCHES"
+			fi
+		else
+			LOG  "Relayer inactive! try to restart it"
+			systemctl restart "$RELAYER_SERVICE_NAME"
+			if [[ $? -eq 0 ]]; then
+				LOG "Relayer restarted successfully"
+			else
+				LOG "Error: Relayer restart failed"
+			fi
+		fi
+	fi
+	}
 
 PRIMARY_SERVER(){ #######################################################################
 	#echo -e "\n = PRIMARY  SERVER ="
