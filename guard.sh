@@ -551,7 +551,7 @@ PRIMARY_SERVER(){ ##############################################################
 	
 SECONDARY_SERVER(){ ##################################################################
 	SEND_INFO "SECONDARY ${NODE}.${NAME} $CUR_IP start"
-	if [[ $RELAYER_SERVICE == 'true' && systemctl is-active --quiet "$RELAYER_SERVICE_NAME" ]]; then
+	if [[ $RELAYER_SERVICE == 'true' ]] && systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
 		systemctl stop "$RELAYER_SERVICE_NAME"
 	fi
 	# waiting remote server fail and selfcheck health
