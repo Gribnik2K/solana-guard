@@ -322,7 +322,7 @@ SSH(){
 			LOG "remote server $REMOTE_IP ping OK"
 		else
 			LOG "Error: remote server $REMOTE_IP did not ping"
-			if ping -c 3 -W 1 "www.google.com" > /dev/null 2>&1; then
+			if ping -c 3 -W 1 "8.8.8.8" > /dev/null 2>&1; then
 				LOG "Google ping OK"
 			else
 				LOG "Error: Google did not ping too"
