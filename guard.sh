@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.15
+GUARD_VER=v1.8.16
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -515,7 +515,7 @@ COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
 
 
 RELAYER_SERVICE_NAME="relayer.service"
-RELAYER_ERRORS="error authenticating and connecting|BlockEngineFailure"
+RELAYER_ERRORS="block engine failed: aoi updates disconnected" 
 relayer_alarm_time=0
 CHECK_RELAYER(){ # check relayer service on current server
 	if [[ $RELAYER_SERVICE == 'true' && $((current_time - relayer_alarm_time)) -ge 120 ]]; then
