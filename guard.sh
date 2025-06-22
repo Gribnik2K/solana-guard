@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.14
+GUARD_VER=v1.8.15
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -516,16 +516,20 @@ COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
 
 RELAYER_SERVICE_NAME="relayer.service"
 RELAYER_ERRORS="error authenticating and connecting|BlockEngineFailure"
+relayer_alarm_time=0
 CHECK_RELAYER(){ # check relayer service on current server
-	if [[ $RELAYER_SERVICE == 'true' ]]; then
+	if [[ $RELAYER_SERVICE == 'true' && $((current_time - relayer_alarm_time)) -ge 120 ]]; then
 		if systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
     		MATCHES=$(journalctl -u "$RELAYER_SERVICE_NAME" --since "3 seconds ago" | grep -E "$RELAYER_ERRORS")
 			if [[ -n "$MATCHES" ]]; then
-				LOG  "Error: Detected relayer conflict"
+				echo "$(TIME) $MATCHES" >> $LOG_FILE
+      			SEND_ALARM "$SERV_TYPE ${NODE}.${NAME}: relayer Error"
+				relayer_alarm_time=$current_time
 			fi
 		else
-			LOG  "Relayer inactive! try to restart it"
+			SEND_ALARM "$SERV_TYPE ${NODE}.${NAME}: Relayer inactive! try to restart it"
 			systemctl restart "$RELAYER_SERVICE_NAME"
+			relayer_alarm_time=$current_time
 			if [[ $? -eq 0 ]]; then
 				LOG "Relayer restarted successfully"
 			else
@@ -623,9 +627,9 @@ SECONDARY_SERVER(){ ############################################################
  	# check tower age
   	time_diff=200000
   	if [[ -f $LEDGER/tower-1_9-$IDENTITY.bin ]]; then
-		current_time=$(($(date +%s%N) / 1000000)) # текущее время в миллисекундах
+		current_ms_time=$(($(date +%s%N) / 1000000)) # текущее время в миллисекундах
 		last_modified=$(($(date -r "$LEDGER/tower-1_9-$IDENTITY.bin" +%s%N) / 1000000)) # время последнего изменения файла в миллисекундах
-		time_diff=$((current_time - last_modified)); 
+		time_diff=$((current_ms_time - last_modified)); 
   		time_diff=$(echo "scale=2; $time_diff / 1000" | bc) # convert to seconds
 	fi	
 
