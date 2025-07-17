@@ -634,6 +634,7 @@ SECONDARY_SERVER(){ ############################################################
 	fi	
 
  	# check, if remote validator 'changing' / 'stop voting'
+  	: '
 	SSH "$SOL_BIN/agave-validator --ledger '$LEDGER' contact-info" # get remote validator info
 	remote_validator=$(echo "$command_output" | grep "Identity:" | awk '{print $2}') # get remote voting identity
 	if [[ "$remote_validator" == "$IDENTITY" ]]; then
@@ -643,6 +644,7 @@ SECONDARY_SERVER(){ ############################################################
 	else
 		LOG "Remote_validator changed OK: $remote_validator"
 	fi
+ 	'
    
    # START SOLANA on LOCAL server
    	if (( $(echo "$time_diff >= 180.000" | bc -l) )); then # more than 180 seconds
