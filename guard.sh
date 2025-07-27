@@ -14,12 +14,21 @@ configDir="$HOME/.config/solana"
 # CHAT_ALARM=-1001..5684
 # CHAT_INFO=-1001..2888
 # BOT_TOKEN=50762..CllWU
-# список альтернативных rpcURL2 для сравнения значений
+# alternative RPC URL list
 # RPC_LIST=(
 # "https://mainnet.helius-rpc.com..."
 # "https://mainnet.helius-rpc.com..."
 # )
 #======================================================
+if [ -f "$GUARD_CFG" ]; then
+    source "$GUARD_CFG" # get settings
+    KEYS=$(echo "$KEYS" | tr -d '\r') # Удаление символа \r, если он есть
+    SOLANA_SERVICE=$(echo "$SOLANA_SERVICE" | tr -d '\r') # Удаление символа \r, если он есть
+	configDir=$(echo "$configDir" | tr -d '\r') # Удаление символа \r, если он есть
+	BOT_TOKEN=$(echo "$BOT_TOKEN" | tr -d '\r') # Удаление символа \r, если он есть
+else
+  	echo "Error: $GUARD_CFG does not exist, set default settings" >&2
+fi
 LEDGER=$(grep -oP '(?<=--ledger\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
 EMPTY_KEY=$(grep -oP '(?<=--identity\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
 VOTING_KEY=$(grep -oP '(?<=--authorized-voter\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
@@ -44,15 +53,6 @@ SITES=("www.google.com" "www.bing.com")
 SOL_BIN="$(cat ${configDir}/install/config.yml | grep 'active_release_dir\:' | awk '{print $2}')/bin"
 GRAY=$'\033[90m'; GREEN=$'\033[32m'; RED=$'\033[31m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CLEAR=$'\033[0m'
 # ======================
-if [ -f "$GUARD_CFG" ]; then
-    source "$GUARD_CFG" # get settings
-    KEYS=$(echo "$KEYS" | tr -d '\r') # Удаление символа \r, если он есть
-    SOLANA_SERVICE=$(echo "$SOLANA_SERVICE" | tr -d '\r') # Удаление символа \r, если он есть
-	configDir=$(echo "$configDir" | tr -d '\r') # Удаление символа \r, если он есть
-	BOT_TOKEN=$(echo "$BOT_TOKEN" | tr -d '\r') # Удаление символа \r, если он есть
-else
-  	echo "Error: $GUARD_CFG does not exist, set default settings" >&2
-fi
 if [[ -f $LOG_FILE ]]; then
     rpc_index=$(grep -oP 'rpc_index=\K\d+' "$LOG_FILE" | tail -n 1) # Читаем последний rpc_index из лог-файла
 fi
