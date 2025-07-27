@@ -251,7 +251,7 @@ GET_VOTING_IP(){
     # get local validator addr
     contact_info=$(agave-validator --ledger "$LEDGER" contact-info)
 	if [ $? -ne 0 ]; then
-	    LOG "Error: agave-validator contact-info failed"
+	    LOG "Error: $contact_info"
 	    local_validator=""
 	else
 	    local_validator=$(echo "$contact_info" | grep "Identity:" | awk '{print $2}')
