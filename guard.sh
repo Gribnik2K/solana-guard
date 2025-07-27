@@ -240,7 +240,7 @@ DDOS_MONITOR() { # check nftables log for DDOS warnings
 }
 
 GET_VOTING_IP(){
-    # Получаем IP-адрес голосующего валидатора 
+    # get voiting validator IP 
 	RPC_REQUEST "IP"  
  	if [ -z "$REQUEST_ANSWER" ]; then
 		LOG "Error in GET_VOTING_IP: VOTING_IP empty, keep previous value"
@@ -248,15 +248,15 @@ GET_VOTING_IP(){
 	fi
 	VOTING_IP=$REQUEST_ANSWER
     SERV="$USER@$VOTING_IP"
-    # Получаем локальный валидатор
-    #local_validator=$(timeout 3 stdbuf -oL agave-validator --ledger $LEDGER monitor 2>/dev/null | grep -m1 Identity | awk -F': ' '{print $2}')
-    local_validator=$(agave-validator --ledger $LEDGER contact-info | grep "Identity:" | awk '{print $2}') # identity
-    if [[ $? -ne 0 ]]; then
-        LOG "Error in GET_VOTING_IP: define local_validator"
-        # return 1
-    fi
-	#local_validator=$(cat $HOME/tmp); LOG "local_validator=$local_validator"
-    # Проверяем текущий IP и устанавливаем тип сервера
+    # get local validator addr
+    contact_info=$(agave-validator --ledger "$LEDGER" contact-info)
+	if [ $? -ne 0 ]; then
+	    LOG "Error: agave-validator contact-info failed"
+	    local_validator=""
+	else
+	    local_validator=$(echo "$contact_info" | grep "Identity:" | awk '{print $2}')
+	fi
+    # IP compare to set server type
     if [[ "$CUR_IP" == "$VOTING_IP" && "$local_validator" == "$IDENTITY" ]]; then
         SERV_TYPE='PRIMARY'
     elif [[ "$local_validator" == "$EMPTY_ADDR" ]]; then
