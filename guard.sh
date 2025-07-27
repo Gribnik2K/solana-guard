@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.16
+GUARD_VER=v1.8.17
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -730,7 +730,7 @@ if [[ $argument =~ ^[0-9]+$ ]] && [ "$argument" -gt 0 ]; then
 	echo -e "$RED behind threshold = $behind_threshold  $CLEAR"
 elif [[ $argument == "p" ]]; then
 	primary_mode='permanent_primary'; 
- 	read -p "Do you realy want to set PERMANENT PRIMARY mode? " RESP; if [ "$RESP" != "y" ]; then exit 1; fi
+ 	read -p "Do you realy want to set PERMANENT PRIMARY mode? (y/n)" RESP; if [ "$RESP" != "y" ]; then exit 1; fi
 	echo -e " WARNING!!! $RED PERMANENT PRIMARY mode $CLEAR !!!"
 elif [[ $argument == "u" ]]; then
 	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/guard.sh > $HOME/solana-guard/guard.sh
