@@ -726,10 +726,11 @@ argument=$1 # read script argument
 primary_mode=''
 behind_threshold="0"
 if [[ $argument =~ ^[0-9]+$ ]] && [ "$argument" -gt 0 ]; then
-    	behind_threshold=$argument # 
+    behind_threshold=$argument # 
 	echo -e "$RED behind threshold = $behind_threshold  $CLEAR"
 elif [[ $argument == "p" ]]; then
 	primary_mode='permanent_primary'; 
+ 	read -p "Do you realy want to set PERMANENT PRIMARY mode? " RESP; if [ "$RESP" != "y" ]; then exit 1; fi
 	echo -e " WARNING!!! $RED PERMANENT PRIMARY mode $CLEAR !!!"
 elif [[ $argument == "u" ]]; then
 	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$LATEST_TAG/guard.sh > $HOME/solana-guard/guard.sh
@@ -797,14 +798,19 @@ IdentityFile $KEYS/*.ssh
 # check remote server SSH connection (by reading Identity addr)
 timeout 3 ssh REMOTE "echo ssh connection OK"
 if [ $? -ne 0 ]; then
-    echo "Can not connect by SSH"
+    echo "Can not connect by SSH to remote server!
+	HostName: $REMOTE_IP
+	User: $USER
+	Port: $PORT
+	IdentityFile: $KEYS/*.ssh
+	"
 fi
 SSH "$SOL_BIN/solana address"
 if [ $command_exit_status -eq  0 ]; then
 	remote_identity=$command_output
-	echo "remote server solana OK"	
+	echo "Checking solana on remote server OK"	
 else
-	echo -e "$RED Can't run solana on remote server $CLEAR" 
+	echo -e "$RED Can't run solana on remote server $CLEAR, is it exist $SOL_BIN/solana" 
 	return
 fi
 
@@ -813,6 +819,7 @@ if [ "$remote_identity" != "$IDENTITY" ]; then
     echo -e "$RED Warning! Servers identities are different $CLEAR"
 	echo "Current Identity = $IDENTITY"
 	echo "Remote Identity  = $remote_identity"
+ 	echo "Check 'solana config get' on both servers"
 	return
 fi
 
@@ -821,7 +828,7 @@ SSH "$SOL_BIN/agave-validator --ledger '$LEDGER' contact-info" # get remote vali
 remote_validator=$(echo "$command_output" | grep "Identity:" | awk '{print $2}') # get remote voting identity
 if [ -z "$remote_validator" ]; then
 	echo -e "$RED remote_validator is missing  $CLEAR"
-	echo "is remote server running?"	
+	echo "Check path: '$LEDGER' on remote server"	
 	return
 fi
 
@@ -840,6 +847,9 @@ elif [[ "$remote_validator" == "$remote_empty" ]]; then
 	REMOTE_SERVER_STATUS="Secondary"
 else
 	echo -e "$RED remote server unknown status  $CLEAR" 
+ 	echo "remote validator: $remote_validator"
+  	echo "remote empty addr: $remote_empty"
+	echo "identity addr: $IDENTITY"
 	return
 fi
 
