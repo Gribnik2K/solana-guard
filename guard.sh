@@ -23,9 +23,9 @@ configDir="$HOME/.config/solana"
 if [ -f "$GUARD_CFG" ]; then
     source "$GUARD_CFG" # get settings
     KEYS=$(echo "$KEYS" | tr -d '\r') # Удаление символа \r, если он есть
-    SOLANA_SERVICE=$(echo "$SOLANA_SERVICE" | tr -d '\r') # Удаление символа \r, если он есть
-	configDir=$(echo "$configDir" | tr -d '\r') # Удаление символа \r, если он есть
-	BOT_TOKEN=$(echo "$BOT_TOKEN" | tr -d '\r') # Удаление символа \r, если он есть
+    SOLANA_SERVICE=$(echo "$SOLANA_SERVICE" | tr -d '\r') # Remove \r character if exists
+	configDir=$(echo "$configDir" | tr -d '\r') # Remove \r character if exists
+	BOT_TOKEN=$(echo "$BOT_TOKEN" | tr -d '\r') # Remove \r character if exists
 else
   	echo "Error: $GUARD_CFG does not exist, set default settings" >&2
 fi
@@ -54,10 +54,10 @@ SOL_BIN="$(cat ${configDir}/install/config.yml | grep 'active_release_dir\:' | a
 GRAY=$'\033[90m'; GREEN=$'\033[32m'; RED=$'\033[31m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CLEAR=$'\033[0m'
 # ======================
 if [[ -f $LOG_FILE ]]; then
-    rpc_index=$(grep -oP 'rpc_index=\K\d+' "$LOG_FILE" | tail -n 1) # Читаем последний rpc_index из лог-файла
+    rpc_index=$(grep -oP 'rpc_index=\K\d+' "$LOG_FILE" | tail -n 1) # Read last rpc_index from log file
 fi
 if [[ -z "$RPC_LIST" ]]; then
-    RPC_LIST=($rpcURL1) # Записываем в массив RPC сервер соланы, чтобы не было ошибки
+    RPC_LIST=($rpcURL1) # Add RPC server to array to avoid errors
 	rpc_index=0
 	echo -e "Warning! $RED RPC_LIST is not defined in $GUARD_CFG ! $CLEAR"
 fi
@@ -76,7 +76,7 @@ TIME() {
 	}
 LOG() {
     local message="$1"
-    echo "$(TIME) $message" | tee -a $LOG_FILE  # Записываем в лог
+    echo "$(TIME) $message" | tee -a $LOG_FILE  # 
 	}
 SEND_INFO(){
 	local message="$1"
@@ -275,7 +275,7 @@ command_exit_status=0; command_output=''; ssh_alarm_time=0 # set global variable
 SSH(){
 	local ssh_command="$1"
 	local err_file="/tmp/ssh_error.tmp"
-	trap 'rm -f "$err_file"' EXIT # Trap для удаления временного файла при выходе
+	trap 'rm -f "$err_file"' EXIT 
 
   	command_output=$(timeout 5 ssh -o ConnectTimeout=3 REMOTE $ssh_command 2>$err_file)
 	command_exit_status=$?
@@ -283,10 +283,10 @@ SSH(){
   	# ConnectTimeout - допустимое время на установления TCP-соединения
    	# -vvv - расширенный отладочный вывод
 		
-	# Диагностика SSH ошибок
+	# SSH errors
   	if [ $command_exit_status -ne 0 ]; then
     	case $command_exit_status in
-			255)  # Стандартные SSH ошибки
+			255)  # standart SSH errors
 				LOG "SSH Error: $(cat $err_file)"
 				;;
 			130)  # Ctrl+C
@@ -386,7 +386,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
    			Request_OK='false';
 	  	fi
 	fi
-	if [[ $Request_OK == 'true' && "$my_slot" =~ ^-?[0-9]+$ && "$RPC_SLOT" =~ ^-?[0-9]+$ ]]; then  # переменные являются числами
+	if [[ $Request_OK == 'true' && "$my_slot" =~ ^-?[0-9]+$ && "$RPC_SLOT" =~ ^-?[0-9]+$ ]]; then  #
     	slots_remaining=$((my_slot - RPC_SLOT))
 	 	NEXT_CLR=$BLUE
 	elif [[ "$SLOTS_UNTIL_EPOCH_END" =~ ^-?[0-9]+$ ]]; then # переменная является числом
@@ -445,7 +445,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
 		fi
 	fi
 	REMOTE_BEHIND=$(cat $HOME/solana-guard/remote_behind)
-	if [[ $REMOTE_BEHIND -le $BEHIND_OK_VAL ]]; then #  && $REMOTE_BEHIND -gt -1000 проверка на "число" и -1000<REMOTE_BEHIND<1
+	if [[ $REMOTE_BEHIND -le $BEHIND_OK_VAL ]]; then #  && $REMOTE_BEHIND -gt -1000 Check if number is valid and within range -1000<REMOTE_BEHIND<1
 		remote_behind_counter=0
   		REMOTE_BEHIND_PRN="$GREEN$REMOTE_BEHIND"	
   	else	
@@ -627,8 +627,8 @@ SECONDARY_SERVER(){ ############################################################
  	# check tower age
   	time_diff=200000
   	if [[ -f $LEDGER/tower-1_9-$IDENTITY.bin ]]; then
-		current_ms_time=$(($(date +%s%N) / 1000000)) # текущее время в миллисекундах
-		last_modified=$(($(date -r "$LEDGER/tower-1_9-$IDENTITY.bin" +%s%N) / 1000000)) # время последнего изменения файла в миллисекундах
+		current_ms_time=$(($(date +%s%N) / 1000000)) # Get current time in milliseconds
+		last_modified=$(($(date -r "$LEDGER/tower-1_9-$IDENTITY.bin" +%s%N) / 1000000)) # Get last modified time in milliseconds
 		time_diff=$((current_ms_time - last_modified)); 
   		time_diff=$(echo "scale=2; $time_diff / 1000" | bc) # convert to seconds
 	fi	
@@ -669,7 +669,7 @@ SECONDARY_SERVER(){ ############################################################
  	
 	# restart relayer service
  	if [[ $RELAYER_SERVICE == 'true' ]]; then 
- 		timeout 10 ssh REMOTE  "systemctl stop relayer.service" # big timeout for this command needed
+ 		timeout 10 ssh REMOTE  "systemctl stop relayer.service" # Large timeout needed for this command
    		if [ $? -eq 0 ]; then LOG "stop relayer on remote server OK"
 		elif [ $? -eq 124 ]; then LOG "stop relayer on remote server timeout exceed"
  		else LOG "stop relayer on remote server Error"
@@ -749,13 +749,13 @@ echo -e "IDENTITY  = $GREEN$IDENTITY $CLEAR" | tee -a $LOG_FILE
 echo -e "empty addr = $GRAY$EMPTY_ADDR $CLEAR" | tee -a $LOG_FILE
 if [[ -z "$rpc_index" ]]; then # rpc_index not defined
 	LOG "rpc_index not defined in $LOG_FILE, set default value rpc_index=0"
-	rpc_index=0; # Устанавливаем значение по умолчанию
+	rpc_index=0; # Set default value
 fi
 echo " Helius rpc_index=$rpc_index, rpcURL list:"
 for rpcURL in "${RPC_LIST[@]}"; do
 	echo -e "$GRAY$rpcURL$CLEAR" | tee -a $LOG_FILE
 done
-rpcURL2="${RPC_LIST[$rpc_index]}" # Получаем текущий RPC URL из списка
+rpcURL2="${RPC_LIST[$rpc_index]}" # Get current RPC URL from list
 if [ -z "$NAME" ]; then NAME=$(hostname); fi
 if [ $rpcURL1 = https://api.testnet.solana.com ]; then 
 NODE="test"
