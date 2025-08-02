@@ -193,6 +193,12 @@ RPC_LIST=(
 )
 ```
 
+### Relayer Service Configuration
+The `RELAYER_SERVICE` variable controls the relayer service functionality:
+- `RELAYER_SERVICE=relayer.service` - enables relayer service management and sets service name
+- `RELAYER_SERVICE=false` - disables all relayer-related functionality
+
+
 ### SSH Key Setup
 Place private SSH keys (\`any_name.ssh\`) for both servers in \`~/keys\`.
 Note, that the same SOLANA_SERVICE and KEYS paths must be used on both servers!
