@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.17
+GUARD_VER=v1.8.18
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -9,7 +9,7 @@ SOLANA_SERVICE="$HOME/solana/solana.service"
 BEHIND_WARNING=false # 'false'- send telegramm INFO missage, when behind. 'true'-send ALERT message
 WARNING_FREQUENCY=12 # max frequency of warning messages (WARNING_FREQUENCY x 5) seconds
 BEHIND_OK_VAL=1 # behind, that seemed ordinary
-RELAYER_SERVICE=true # use restarting jito-relayer service
+RELAYER_SERVICE=relayer.service # "false" - disable relayer service
 configDir="$HOME/.config/solana"
 # CHAT_ALARM=-1001..5684
 # CHAT_INFO=-1001..2888
@@ -68,6 +68,12 @@ fi
 if ! command -v bc &> /dev/null; then
     echo "Warning! 'bc' not installed. Please run 'apt install bc'"
     return 
+fi
+# Check and setup RELAYER_SERVICE
+if [[ "$RELAYER_SERVICE" == "false" || -z "$RELAYER_SERVICE" ]]; then
+    RELAYER_SERVICE=""
+elif [[ "$RELAYER_SERVICE" == "true" ]]; then # for compatibility with the old cfg file
+    RELAYER_SERVICE="relayer.service"
 fi
 
 
@@ -514,13 +520,12 @@ COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
 }
 
 
-RELAYER_SERVICE_NAME="relayer.service"
 RELAYER_ERRORS="block engine failed: aoi updates disconnected" 
 relayer_alarm_time=0
 CHECK_RELAYER(){ # check relayer service on current server
-	if [[ $RELAYER_SERVICE == 'true' && $((current_time - relayer_alarm_time)) -ge 120 ]]; then
-		if systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
-    		MATCHES=$(journalctl -u "$RELAYER_SERVICE_NAME" --since "3 seconds ago" | grep -E "$RELAYER_ERRORS")
+	if [[ -n "$RELAYER_SERVICE" && $((current_time - relayer_alarm_time)) -ge 120 ]]; then
+		if systemctl is-active --quiet "$RELAYER_SERVICE"; then
+    		MATCHES=$(journalctl -u "$RELAYER_SERVICE" --since "3 seconds ago" | grep -E "$RELAYER_ERRORS")
 			if [[ -n "$MATCHES" ]]; then
 				echo "$(TIME) $MATCHES" >> $LOG_FILE
       			SEND_ALARM "$SERV_TYPE ${NODE}.${NAME}: relayer Error"
@@ -528,7 +533,7 @@ CHECK_RELAYER(){ # check relayer service on current server
 			fi
 		else
 			SEND_ALARM "$SERV_TYPE ${NODE}.${NAME}: Relayer inactive! try to restart it"
-			systemctl restart "$RELAYER_SERVICE_NAME"
+			systemctl restart "$RELAYER_SERVICE"
 			relayer_alarm_time=$current_time
 			if [[ $? -eq 0 ]]; then
 				LOG "Relayer restarted successfully"
@@ -555,9 +560,9 @@ PRIMARY_SERVER(){ ##############################################################
 	
 SECONDARY_SERVER(){ ##################################################################
 	SEND_INFO "SECONDARY ${NODE}.${NAME} $CUR_IP start"
-	if [[ $RELAYER_SERVICE == 'true' ]] && systemctl is-active --quiet "$RELAYER_SERVICE_NAME"; then
+	if [[ -n "$RELAYER_SERVICE" ]] && systemctl is-active --quiet "$RELAYER_SERVICE"; then
 		LOG  "Relayer is active! try to stop it"
-		systemctl stop "$RELAYER_SERVICE_NAME"
+		systemctl stop "$RELAYER_SERVICE"
 		if [[ $? -eq 0 ]]; then
 			LOG "Relayer stoped successfully"
 		else
@@ -668,21 +673,21 @@ SECONDARY_SERVER(){ ############################################################
 	fi
  	
 	# restart relayer service
- 	if [[ $RELAYER_SERVICE == 'true' ]]; then 
- 		timeout 10 ssh REMOTE  "systemctl stop relayer.service" # Large timeout needed for this command
+ 	if [[ -n "$RELAYER_SERVICE" ]]; then 
+ 		timeout 10 ssh REMOTE  "systemctl stop $RELAYER_SERVICE" # Large timeout needed for this command
    		if [ $? -eq 0 ]; then LOG "stop relayer on remote server OK"
 		elif [ $? -eq 124 ]; then LOG "stop relayer on remote server timeout exceed"
  		else LOG "stop relayer on remote server Error"
 		fi
-  		SSH "systemctl disable relayer.service" # on remote server
+  		SSH "systemctl disable $RELAYER_SERVICE" # on remote server
 		if [ $command_exit_status -eq 0 ]; then LOG "disable relayer on remote server OK"
 		elif [ $command_exit_status -eq 124 ]; then LOG "disable relayer on remote server timeout exceed"
  		else LOG "disable relayer on remote server Error"
 		fi
-		ln -sf ~/solana/relayer.service /etc/systemd/system
+		ln -sf ~/solana/$RELAYER_SERVICE /etc/systemd/system
 		systemctl daemon-reload
-  		systemctl enable relayer.service
-		systemctl start relayer.service
+  		systemctl enable $RELAYER_SERVICE
+		systemctl start $RELAYER_SERVICE
   		agave-validator -l $LEDGER set-relayer-config --relayer-url http://127.0.0.1:11226
   		LOG "restart relayer service"
 	fi
