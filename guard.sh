@@ -533,6 +533,7 @@ CHECK_RELAYER(){ # check relayer service on current server
 			fi
 		else
 			SEND_ALARM "$SERV_TYPE ${NODE}.${NAME}: Relayer inactive! try to restart it"
+   			ln -sf ~/solana/$RELAYER_SERVICE /etc/systemd/system
 			systemctl restart "$RELAYER_SERVICE"
 			relayer_alarm_time=$current_time
 			if [[ $? -eq 0 ]]; then
