@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.19
+GUARD_VER=v1.8.20
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -49,7 +49,7 @@ else
 fi	
 client=$(solana --version | awk -F'client:' '{print $2}' | tr -d ')')
 CUR_IP=$(wget -q -4 -O- http://icanhazip.com)
-SITES=("www.google.com" "www.bing.com")
+SITES=("8.8.8.8" "1.1.1.1")  # Google Public DNS & Cloudflare DNS to ping
 SOL_BIN="$(cat ${configDir}/install/config.yml | grep 'active_release_dir\:' | awk '{print $2}')/bin"
 GRAY=$'\033[90m'; GREEN=$'\033[32m'; RED=$'\033[31m'; YELLOW=$'\033[33m'; BLUE=$'\033[34m'; CLEAR=$'\033[0m'
 # ======================
