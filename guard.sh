@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.18
+GUARD_VER=v1.8.19
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -100,7 +100,7 @@ SEND_ALARM(){
 REQUEST_IP(){
 	#sleep 0.5
 	local RPC_URL="$1"
-	VALIDATOR_REQUEST=$(timeout 5 solana gossip --url $RPC_URL 2>> $LOG_FILE)
+	VALIDATOR_REQUEST=$(timeout 9 solana gossip --url $RPC_URL 2>> $LOG_FILE)
 	if [ $? -ne 0 ]; then 
 		echo "$(TIME) Error in REQUEST_IP for RPC $RPC_URL" >> $LOG_FILE
 	fi
@@ -113,7 +113,7 @@ REQUEST_IP(){
 REQUEST_DELINK(){
 	#sleep 0.5
 	local RPC_URL="$1"
-	VALIDATORS_LIST=$(timeout 5 solana validators --url $RPC_URL --output json 2>> $LOG_FILE)
+	VALIDATORS_LIST=$(timeout 9 solana validators --url $RPC_URL --output json 2>> $LOG_FILE)
 	if [ $? -ne 0 ]; then 
 		echo "$(TIME) Error in REQUEST_DELINK for RPC $RPC_URL" >> $LOG_FILE
 	fi
