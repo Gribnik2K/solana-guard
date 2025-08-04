@@ -40,11 +40,9 @@ fi
 # Extract RPC port and setup local RPC URL
 RPC_PORT=$(grep -oP '(?<=--rpc-port\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
 if [[ -z "$RPC_PORT" ]]; then
-    LOCAL_RPC=""
-    LOG "No local RPC port found in solana.service, using public RPC"
+    LOCAL_RPC="" # No local RPC port found in solana.service, using public RPC
 else
-    LOCAL_RPC="--url http://localhost:$RPC_PORT"
-    LOG "Using local RPC on port $RPC_PORT"
+    LOCAL_RPC="--url http://localhost:$RPC_PORT" # Using local RPC for leader schedule and epoch info queries
 fi
 VOTING_ADDR=$(solana address -k $VOTING_KEY)
 EMPTY_ADDR=$(solana address -k $EMPTY_KEY)
