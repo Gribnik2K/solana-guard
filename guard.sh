@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.20
+GUARD_VER=v1.8.21
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -371,7 +371,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
    	fi
 	# sleep 1
 	# epoch info
-	EPOCH_INFO=$(timeout 5 solana epoch-info --output json 2>> $LOG_FILE)
+	EPOCH_INFO=$(timeout 5 solana epoch-info --output json --url http://localhost:8899 2>> $LOG_FILE)
 	if [[ $? -ne 0 ]]; then
     	echo "$(TIME) Error retrieving epoch info: $EPOCH_INFO" >> $LOG_FILE
 	 	SLOTS_UNTIL_EPOCH_END=0
@@ -381,7 +381,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
 		SLOTS_UNTIL_EPOCH_END=$(echo "$SLOTS_IN_EPOCH - $SLOT_INDEX" | bc)
  	fi
 	# next slot time
- 	output=$(timeout 5 solana leader-schedule -v 2>> $LOG_FILE)
+ 	output=$(timeout 5 solana leader-schedule -v --url http://localhost:8899 2>> $LOG_FILE)
 	if [[ $? -ne 0 ]]; then
 		echo "$(TIME) Error in leader schedule request" >> $LOG_FILE
   		Request_OK='false';
