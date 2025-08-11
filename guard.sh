@@ -291,6 +291,7 @@ SSH_OPTS=(
     "-o ControlPath=$HOME/.ssh/cm/%C"   # Short, hashed socket path (%C = per-conn hash)
     "-o ControlPersist=300"             # Keep master connection for 5 minutes
     "-o ConnectTimeout=5"               # Limit TCP connect time
+	"-o BatchMode=yes"                  # Non-interactive fast-fail
     "-o ServerAliveInterval=30"         # Send keepalive every 30s
     "-o ServerAliveCountMax=3"          # Drop after 3 missed keepalives
     "-o LogLevel=ERROR"                 # Quieter logs
@@ -516,25 +517,8 @@ CHECK_CONNECTION() { # self check connection every 5 seconds ###################
   }
 
 COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
-    timeout 3 scp "${SSH_OPTS[@]}" -q -P $PORT $SERV:$LEDGER/tower-1_9-$IDENTITY.bin $LEDGER
-    local scp_status=$?
-    
-    case $scp_status in
-        0)  # success
-            return 0
-            ;;
-        124)  # timeout
-            LOG "Error: SCP timeout while copying tower file"
-            ;;
-        1)    # General SCP error
-            LOG "Error: Failed to copy tower file"
-            ;;
-        *)
-            LOG "Error: SCP failed with exit code $scp_status"
-            ;;
-    esac
-    
-    return $scp_status
+    timeout 2 ssh "${SSH_OPTS[@]}" REMOTE "cat $LEDGER/tower-1_9-$IDENTITY.bin" > "$LEDGER/tower-1_9-$IDENTITY.bin"
+    return $?
 }
 
 
@@ -648,6 +632,7 @@ SECONDARY_SERVER(){ ############################################################
     	LOG "Tower copy successfully"
 	fi
 
+	: '
  	# check tower age
   	time_diff=200000
   	if [[ -f $LEDGER/tower-1_9-$IDENTITY.bin ]]; then
@@ -658,7 +643,7 @@ SECONDARY_SERVER(){ ############################################################
 	fi	
 
  	# check, if remote validator 'changing' / 'stop voting'
-  	: '
+  	
 	SSH "$SOL_BIN/agave-validator --ledger '$LEDGER' contact-info" # get remote validator info
 	remote_validator=$(echo "$command_output" | grep "Identity:" | awk '{print $2}') # get remote voting identity
 	if [[ "$remote_validator" == "$IDENTITY" ]]; then
@@ -671,21 +656,14 @@ SECONDARY_SERVER(){ ############################################################
  	'
    
    # START SOLANA on LOCAL server
-   	if (( $(echo "$time_diff >= 180.000" | bc -l) )); then # more than 180 seconds
-		SEND_ALARM "tower too old = ${time_diff}s"
-   		TOWER_STATUS=' without tower'; 	
-	 	agave-validator -l $LEDGER set-identity $VOTING_KEY;
-	else
-	  	TOWER_STATUS=" with tower/${time_diff}s"; 	
-		agave-validator -l $LEDGER set-identity --require-tower $VOTING_KEY;
-	fi
+   	agave-validator -l $LEDGER set-identity --require-tower $VOTING_KEY;
  	
 	set_identity_status=$?
 	switch_stop_time=$(($(date +%s%N) / 1000000))
   	switch_time=$((switch_stop_time - switch_start_time))
    	switch_time=$(echo "scale=2; $switch_time / 1000" | bc) # convert to seconds
  	if [ $set_identity_status -eq 0 ]; then 
-		SEND_INFO "Start voting$TOWER_STATUS for ${switch_time}s"
+		SEND_INFO "Start voting for ${switch_time}s"
 	else 
 		SEND_ALARM "Start voting Error: $set_identity_status, can't set identity"
   		return
