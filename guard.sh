@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.21
+GUARD_VER=v1.8.22
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -284,13 +284,23 @@ GET_VOTING_IP(){
     fi
 	}
 
+
+
+SSH_OPTS=(
+    "-o ControlMaster=auto"  # Master connection for all connections
+    "-o ControlPath=$HOME/.ssh/%r@%h:%p" # Path to the master connection socket for each connection
+    "-o ControlPersist=30" # Keep master connection for 30 seconds after the last command
+    "-o ConnectTimeout=5"  # Timeout for establishing connection (5 seconds)
+    "-o ServerAliveInterval=30" # keepalive every 30 seconds (30 seconds)
+    "-o ServerAliveCountMax=3"  # Disconnect after 3 failed keepalive messages (3 failed keepalive messages)
+)
 command_exit_status=0; command_output=''; ssh_alarm_time=0 # set global variable
 SSH(){
 	local ssh_command="$1"
 	local err_file="/tmp/ssh_error.tmp"
 	trap 'rm -f "$err_file"' EXIT 
 
-  	command_output=$(timeout 5 ssh -o ConnectTimeout=3 REMOTE $ssh_command 2>$err_file)
+  	command_output=$(timeout 5 ssh "${SSH_OPTS[@]}" REMOTE $ssh_command 2>$err_file)
 	command_exit_status=$?
  	# timeout - ограничивает общее время выполнения ssh-команды (попытка соединения + выполнение команды)
   	# ConnectTimeout - допустимое время на установления TCP-соединения
@@ -801,11 +811,27 @@ eval "$(ssh-agent -s)"  # Start ssh-agent in the background
 ssh-add $KEYS/*.ssh # Add SSH private key to the ssh-agent
 # create ssh alias for remote server
 echo " 
+# SSH Multiplexing Configuration for Solana Guard
 Host REMOTE
-HostName $REMOTE_IP
-User $USER
-Port $PORT
-IdentityFile $KEYS/*.ssh
+    HostName $REMOTE_IP
+    User $USER
+    Port $PORT
+    IdentityFile $KEYS/*.ssh
+    
+    # Multiplexing settings
+    ControlMaster auto
+    ControlPath $HOME/.ssh/%r@%h:%p # socket file for each connection
+    ControlPersist 300 # Keep the connection open for 5 minutes after the last command
+    
+    # Connection optimization
+    ConnectTimeout 5 # Timeout for establishing the connection
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    
+    # Security settings
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
 " > ~/.ssh/config
 
 # check remote server SSH connection (by reading Identity addr)
