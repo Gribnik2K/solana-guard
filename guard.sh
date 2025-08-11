@@ -287,12 +287,20 @@ GET_VOTING_IP(){
 
 
 SSH_OPTS=(
-    "-o ControlMaster=auto"  # Master connection for all connections
-    "-o ControlPath=$HOME/.ssh/%r@%h:%p" # Path to the master connection socket for each connection
-    "-o ControlPersist=30" # Keep master connection for 30 seconds after the last command
-    "-o ConnectTimeout=5"  # Timeout for establishing connection (5 seconds)
-    "-o ServerAliveInterval=30" # keepalive every 30 seconds (30 seconds)
-    "-o ServerAliveCountMax=3"  # Disconnect after 3 failed keepalive messages (3 failed keepalive messages)
+    "-o ControlMaster=auto"
+    "-o ControlPath=$HOME/.ssh/cm/%C"   # Short, hashed socket path
+    "-o ControlPersist=300"             # Keep master connection for 5 minutes
+    "-o ConnectTimeout=5"
+    "-o ServerAliveInterval=30"
+    "-o ServerAliveCountMax=3"
+    "-o BatchMode=yes"                  # Non-interactive fast-fail
+    "-o NumberOfPasswordPrompts=0"
+    "-o PreferredAuthentications=publickey"
+    "-o IdentitiesOnly=yes"
+    "-o GSSAPIAuthentication=no"
+    "-o StrictHostKeyChecking=accept-new"
+    "-o UpdateHostKeys=yes"
+    "-o LogLevel=ERROR"
 )
 command_exit_status=0; command_output=''; ssh_alarm_time=0 # set global variable
 SSH(){
@@ -515,7 +523,7 @@ CHECK_CONNECTION() { # self check connection every 5 seconds ###################
   }
 
 COPY_TOWER(){ # copy tower file from PRIMARY to SECONDARY
-    timeout 3 scp -q -P $PORT -i $KEYS/*.ssh -p $SERV:$LEDGER/tower-1_9-$IDENTITY.bin $LEDGER
+    timeout 3 scp "${SSH_OPTS[@]}" -q -P $PORT $SERV:$LEDGER/tower-1_9-$IDENTITY.bin $LEDGER
     local scp_status=$?
     
     case $scp_status in
@@ -692,12 +700,12 @@ SECONDARY_SERVER(){ ############################################################
  	
 	# restart relayer service
  	if [[ -n "$RELAYER_SERVICE" ]]; then 
- 		timeout 10 ssh REMOTE  "systemctl stop $RELAYER_SERVICE" # Large timeout needed for this command
+        timeout 10 ssh "${SSH_OPTS[@]}" REMOTE  "systemctl stop $RELAYER_SERVICE" # Large timeout needed for this command
    		if [ $? -eq 0 ]; then LOG "stop relayer on remote server OK"
 		elif [ $? -eq 124 ]; then LOG "stop relayer on remote server timeout exceed"
  		else LOG "stop relayer on remote server Error"
 		fi
-  		SSH "systemctl disable $RELAYER_SERVICE" # on remote server
+    SSH "systemctl disable $RELAYER_SERVICE" # ✅ with SSH_OPTS
 		if [ $command_exit_status -eq 0 ]; then LOG "disable relayer on remote server OK"
 		elif [ $command_exit_status -eq 124 ]; then LOG "disable relayer on remote server timeout exceed"
  		else LOG "disable relayer on remote server Error"
@@ -809,33 +817,35 @@ fi
 chmod 600 $KEYS/*.ssh
 eval "$(ssh-agent -s)"  # Start ssh-agent in the background
 ssh-add $KEYS/*.ssh # Add SSH private key to the ssh-agent
-# create ssh alias for remote server
-echo " 
-# SSH Multiplexing Configuration for Solana Guard
+# prepare SSH config directories and include
+mkdir -p "$HOME/.ssh/cm" "$HOME/.ssh/config.d"
+if [ ! -f "$HOME/.ssh/config" ] || ! grep -q "^Include .*config.d/\\*.conf$" "$HOME/.ssh/config" 2>/dev/null; then
+  echo "Include ~/.ssh/config.d/*.conf" >> "$HOME/.ssh/config"
+fi
+
+# create/update ssh alias for remote server in dedicated file
+cat > "$HOME/.ssh/config.d/guard.conf" <<EOF
 Host REMOTE
     HostName $REMOTE_IP
     User $USER
     Port $PORT
     IdentityFile $KEYS/*.ssh
-    
-    # Multiplexing settings
+
     ControlMaster auto
-    ControlPath $HOME/.ssh/%r@%h:%p # socket file for each connection
-    ControlPersist 300 # Keep the connection open for 5 minutes after the last command
-    
-    # Connection optimization
-    ConnectTimeout 5 # Timeout for establishing the connection
+    ControlPath ~/.ssh/cm/%C
+    ControlPersist 300
+
+    ConnectTimeout 5
     ServerAliveInterval 30
     ServerAliveCountMax 3
-    
-    # Security settings
-    StrictHostKeyChecking no
-    UserKnownHostsFile /dev/null
+
+    StrictHostKeyChecking accept-new
+    UpdateHostKeys yes
     LogLevel ERROR
-" > ~/.ssh/config
+EOF
 
 # check remote server SSH connection (by reading Identity addr)
-timeout 3 ssh REMOTE "echo ssh connection OK"
+timeout 3 ssh "${SSH_OPTS[@]}" REMOTE "echo ssh connection OK"
 if [ $? -ne 0 ]; then
     echo "Can not connect by SSH to remote server!
 	HostName: $REMOTE_IP
