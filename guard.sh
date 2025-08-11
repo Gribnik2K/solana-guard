@@ -287,20 +287,13 @@ GET_VOTING_IP(){
 
 
 SSH_OPTS=(
-    "-o ControlMaster=auto"
-    "-o ControlPath=$HOME/.ssh/cm/%C"   # Short, hashed socket path
+    "-o ControlMaster=auto"             # Reuse a single master connection
+    "-o ControlPath=$HOME/.ssh/cm/%C"   # Short, hashed socket path (%C = per-conn hash)
     "-o ControlPersist=300"             # Keep master connection for 5 minutes
-    "-o ConnectTimeout=5"
-    "-o ServerAliveInterval=30"
-    "-o ServerAliveCountMax=3"
-    "-o BatchMode=yes"                  # Non-interactive fast-fail
-    "-o NumberOfPasswordPrompts=0"
-    "-o PreferredAuthentications=publickey"
-    "-o IdentitiesOnly=yes"
-    "-o GSSAPIAuthentication=no"
-    "-o StrictHostKeyChecking=accept-new"
-    "-o UpdateHostKeys=yes"
-    "-o LogLevel=ERROR"
+    "-o ConnectTimeout=5"               # Limit TCP connect time
+    "-o ServerAliveInterval=30"         # Send keepalive every 30s
+    "-o ServerAliveCountMax=3"          # Drop after 3 missed keepalives
+    "-o LogLevel=ERROR"                 # Quieter logs
 )
 command_exit_status=0; command_output=''; ssh_alarm_time=0 # set global variable
 SSH(){
@@ -839,8 +832,6 @@ Host REMOTE
     ServerAliveInterval 30
     ServerAliveCountMax 3
 
-    StrictHostKeyChecking accept-new
-    UpdateHostKeys yes
     LogLevel ERROR
 EOF
 
