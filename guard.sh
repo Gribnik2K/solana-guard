@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.22
+GUARD_VER=v1.8.23
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -291,7 +291,7 @@ SSH_OPTS=(
     "-o ControlPath=$HOME/.ssh/cm/%C"   # Short, hashed socket path (%C = per-conn hash)
     "-o ControlPersist=300"             # Keep master connection for 5 minutes
     "-o ConnectTimeout=5"               # Limit TCP connect time
-	"-o BatchMode=yes"                  # Non-interactive fast-fail
+	#"-o BatchMode=yes"                  # Non-interactive fast-fail
     "-o ServerAliveInterval=30"         # Send keepalive every 30s
     "-o ServerAliveCountMax=3"          # Drop after 3 missed keepalives
     "-o LogLevel=ERROR"                 # Quieter logs
@@ -795,7 +795,7 @@ if [ ! -f "$HOME/.ssh/config" ] || ! grep -q "^Include .*config.d/\\*.conf$" "$H
 fi
 
 # create/update ssh alias for remote server in dedicated file
-cat > "$HOME/.ssh/config.d/guard.conf" <<EOF
+cat > "$HOME/.ssh/config.d/guard_ssh.conf" <<EOF
 Host REMOTE
     HostName $REMOTE_IP
     User $USER
