@@ -814,7 +814,7 @@ Host REMOTE
 EOF
 
 # check remote server SSH connection (by reading Identity addr)
-timeout 3 ssh "${SSH_OPTS[@]}" REMOTE "echo ssh connection OK"
+timeout 9 ssh "${SSH_OPTS[@]}" REMOTE "echo ssh connection OK"
 if [ $? -ne 0 ]; then
     echo "Can not connect by SSH to remote server!
 	HostName: $REMOTE_IP
