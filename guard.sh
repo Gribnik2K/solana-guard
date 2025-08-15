@@ -42,7 +42,7 @@ RPC_PORT=$(grep -oP '(?<=--rpc-port\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | x
 if [[ -z "$RPC_PORT" ]]; then
     LOCAL_RPC="" # No local RPC port found in solana.service, using public RPC
 else
-    LOCAL_RPC="--url http://localhost:$RPC_PORT" # Using local RPC for leader schedule and epoch info queries
+    LOCAL_RPC="http://localhost:$RPC_PORT" # Using local RPC for leader schedule and epoch info queries
 fi
 VOTING_ADDR=$(solana address -k $VOTING_KEY)
 EMPTY_ADDR=$(solana address -k $EMPTY_KEY)
@@ -390,7 +390,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
    	fi
 	# sleep 1
 	# epoch info
-	EPOCH_INFO=$(timeout 5 solana epoch-info --output json $LOCAL_RPC 2>> $LOG_FILE)
+	EPOCH_INFO=$(timeout 5 solana epoch-info --output json --url $LOCAL_RPC 2>> $LOG_FILE)
 	if [[ $? -ne 0 ]]; then
     	echo "$(TIME) Error retrieving epoch info: $EPOCH_INFO" >> $LOG_FILE
 	 	SLOTS_UNTIL_EPOCH_END=0
@@ -400,7 +400,7 @@ CHECK_HEALTH() { # self check health every 5 seconds  ##########################
 		SLOTS_UNTIL_EPOCH_END=$(echo "$SLOTS_IN_EPOCH - $SLOT_INDEX" | bc)
  	fi
 	# next slot time
- 	output=$(timeout 5 solana leader-schedule -v $LOCAL_RPC 2>> $LOG_FILE)
+ 	output=$(timeout 5 solana leader-schedule -v --url $LOCAL_RPC 2>> $LOG_FILE)
 	if [[ $? -ne 0 ]]; then
 		echo "$(TIME) Error in leader schedule request" >> $LOG_FILE
   		Request_OK='false';
