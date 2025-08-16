@@ -1,5 +1,5 @@
 #!/bin/bash
-GUARD_VER=v1.8.23
+GUARD_VER=v1.8.24
 #=================== guard.cfg ========================
 PORT='22' # remote server ssh port
 KEYS=$HOME/keys
@@ -547,6 +547,27 @@ CHECK_RELAYER(){ # check relayer service on current server
 	fi
 	}
 
+CREDITS_GAP(){ # get credits difference between my validator and TVC leader
+	response=$(curl -s -X POST "$LOCAL_RPC" \
+	    -H "Content-Type: application/json" \
+	    -d "{
+	        \"jsonrpc\": \"2.0\",
+	        \"id\": 1,
+	        \"method\": \"getVoteAccounts\",
+	        \"params\": [{\"commitment\": \"finalized\"}]
+	    }")
+	
+	my_credits=$(echo "$response" | jq -r "
+	    .result.current[] |
+	    select(.votePubkey == \"$vote_account\") |
+	    .epochCredits[-1][1] // 0")
+	
+	max_credits=$(echo "$response" | jq -r "
+	    [.result.current[].epochCredits[-1][1]] | max // 0")
+	
+	echo $(( max_credits - my_credits ))
+	}
+
 PRIMARY_SERVER(){ #######################################################################
 	#echo -e "\n = PRIMARY  SERVER ="
 	SEND_INFO "PRIMARY ${NODE}.${NAME} $CUR_IP start"
@@ -598,7 +619,8 @@ SECONDARY_SERVER(){ ############################################################
   	LOG "Let's stop voting on remote server "
    	LOG "CHECK_UP=$CHECK_UP, HEALTH=$HEALTH, BEHIND=$BEHIND, REASON=$REASON, set_primary=$set_primary, Delinquent=$Delinquent, VOTING_IP=$VOTING_IP  "
 	SEND_INFO "${NODE}.${NAME}: switch voting from ${VOTING_IP} $REASON" # \n%s vote_off remote server
-	TVC1=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
+	TVC1=$(solana validators --sort=credits -r -n -u $LOCAL_RPC | grep $VOTING_ADDR | awk '{print $1}')
+ 	CREDITS_GAP_BEFORE=$(CREDITS_GAP)
  	switch_start_time=$(($(date +%s%N) / 1000000)) #
  	SSH "$SOL_BIN/agave-validator -l $LEDGER set-identity $EMPTY_KEY 2>&1"
 	if [ $command_exit_status -eq 0 ]; then
@@ -702,9 +724,11 @@ SECONDARY_SERVER(){ ############################################################
    	else LOG "start telegraf OK"
 	fi
  	sleep 2
-  	TVC2=$(solana validators --sort=credits -r -n | grep $VOTING_ADDR | awk '{print $1}')
+  	TVC2=$(solana validators --sort=credits -r -n -u $LOCAL_RPC | grep $VOTING_ADDR | awk '{print $1}')
+   	CREDITS_GAP_AFTER=$(CREDITS_GAP)
 	TVC_DIFF=$((TVC2 - TVC1))
-  	LOG "waiting for PRIMARY status, TVC=$TVC2(-$TVC_DIFF)"
+ 	CREDITS_LOSS=$((CREDITS_GAP_BEFORE - CREDITS_GAP_AFTER))
+  	LOG "waiting for PRIMARY status, TVC=$TVC2(-$TVC_DIFF), CREDITS_LOSS=$CREDITS_LOSS"
 	#while [ $SERV_TYPE = "SECONDARY" ]; do
  		# LOG "waiting for PRIMARY status"
    		#GET_VOTING_IP
