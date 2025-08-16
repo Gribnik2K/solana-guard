@@ -288,10 +288,10 @@ GET_VOTING_IP(){
 
 SSH_OPTS=(
     "-o ControlMaster=auto"             # Reuse a single master connection
-    "-o ControlPath=$HOME/.ssh/cm/%C"   # Short, hashed socket path (%C = per-conn hash)
+    "-o ControlPath ~/.ssh/cm/%r@%h:%p" # Short, hashed socket path (%C = per-conn hash)
     "-o ControlPersist=300"             # Keep master connection for 5 minutes
     "-o ConnectTimeout=5"               # Limit TCP connect time
-	#"-o BatchMode=yes"                  # Non-interactive fast-fail
+	#"-o BatchMode=yes"                 # Non-interactive fast-fail
     "-o ServerAliveInterval=30"         # Send keepalive every 30s
     "-o ServerAliveCountMax=3"          # Drop after 3 missed keepalives
     "-o LogLevel=ERROR"                 # Quieter logs
@@ -803,7 +803,7 @@ Host REMOTE
     IdentityFile $KEYS/*.ssh
 
     ControlMaster auto
-    ControlPath ~/.ssh/cm/%C
+	ControlPath ~/.ssh/cm/%r@%h:%p # socket file for each connection ControlPath ~/.ssh/cm/%C
     ControlPersist 300
 
     ConnectTimeout 5
