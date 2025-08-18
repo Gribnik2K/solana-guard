@@ -1,4 +1,3 @@
-[Русский](README_RU.md)
 # [guard.sh](https://github.com/Hohlas/solana-guard/blob/main/guard.sh)
 
 Solana Guard is a multifunctional script for seamless Solana validator failover. It continuously monitors your validator’s status and automatically fixes node and network issues by switching voting to a backup server, keeping your node online and the Solana network resilient.
