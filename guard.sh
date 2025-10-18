@@ -5,7 +5,7 @@ PORT='22' # remote server ssh port
 KEYS=$HOME/keys
 LOG_FILE=$HOME/solana-guard/guard.log
 GUARD_CFG=$HOME/solana-guard/guard.cfg
-SOLANA_SERVICE="$HOME/solana/solana.service"
+SOLANA_SERVICE="/etc/systemd/system/jito.service"
 BEHIND_WARNING=false # 'false'- send telegramm INFO missage, when behind. 'true'-send ALERT message
 WARNING_FREQUENCY=12 # max frequency of warning messages (WARNING_FREQUENCY x 5) seconds
 BEHIND_OK_VAL=1 # behind, that seemed ordinary
@@ -628,7 +628,7 @@ SECONDARY_SERVER(){ ############################################################
 	else
 		SEND_ALARM "Can't set identity on remote server"
   		LOG "Try to restart solana on remote server"
-		SSH "systemctl restart solana 2>&1"
+		SSH "systemctl restart jito 2>&1"
     	if [ $command_exit_status -eq 0 ]; then
 			SEND_INFO "restart solana on remote server"
       	else
