@@ -3,7 +3,7 @@
 CHECK_VER=v1.4.0 # new
 rpcURL=$(solana config get | grep "RPC URL" | awk '{print $3}')
 #===========================================
-SOLANA_SERVICE="$HOME/solana/solana.service"
+SOLANA_SERVICE="/etc/systemd/system/jito.service"
 LEDGER=$(grep -oP '(?<=--ledger\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
 EMPTY_KEY=$(grep -oP '(?<=--identity\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
 VOTING_KEY=$(grep -oP '(?<=--authorized-voter\s).*' "$SOLANA_SERVICE" | tr -d '\\\r\n' | xargs)
