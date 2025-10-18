@@ -1,4 +1,4 @@
-# [guard.sh](https://github.com/Hohlas/solana-guard/blob/main/guard.sh)
+# [guard.sh](https://github.com/Gribnik2k/solana-guard/blob/main/guard.sh)
 
 Solana Guard is a multifunctional script for seamless Solana validator failover. It continuously monitors your validator’s status and automatically fixes node and network issues by switching voting to a backup server, keeping your node online and the Solana network resilient.
 
@@ -88,16 +88,16 @@ if ! command -v curl >/dev/null || ! command -v jq >/dev/null || ! command -v bc
 fi
 
 # download guard.sh
-LATEST_TAG_URL=https://api.github.com/repos/Hohlas/solana-guard/releases/latest
+LATEST_TAG_URL=https://api.github.com/repos/Gribnik2k/solana-guard/releases/latest
 TAG=$(curl -sSL "$LATEST_TAG_URL" | jq -r '.tag_name')
 
 if [ -d ~/solana-guard ]; then 
 	echo "update latest release $TAG"
-	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/guard.sh > $HOME/solana-guard/guard.sh
-	curl -sSL https://raw.githubusercontent.com/Hohlas/solana-guard/$TAG/check.sh > $HOME/solana-guard/check.sh
+	curl -sSL https://raw.githubusercontent.com/Gribnik2k/solana-guard/$TAG/guard.sh > $HOME/solana-guard/guard.sh
+	curl -sSL https://raw.githubusercontent.com/Gribnik2k/solana-guard/$TAG/check.sh > $HOME/solana-guard/check.sh
 else 
 	echo "clone latest release $TAG"
-	git clone https://github.com/Hohlas/solana-guard.git ~/solana-guard
+	git clone https://github.com/Gribnik2k/solana-guard.git ~/solana-guard
 	cd ~/solana-guard
 	git fetch --tags 
 	git checkout tags/$TAG
